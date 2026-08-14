@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Play Masr — تسجيل الدخول</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- تحميل مكتبة جوجل الرسمية (مجانية) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
+  <style>
+    /* نفس التصميم الأنيق اللي طلبتَه */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #0c0f12;
+      color: #eef1f4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: radial-gradient(600px 400px at 80% 20%, rgba(255, 138, 30, 0.10), transparent 60%);
+      padding: 20px;
+    }
+    .login-card {
+      background: #14181d;
+      border: 1px solid #262c33;
+      border-radius: 24px;
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
+      pointer-events: none;
+    }
+    .login-card .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 22px;
+      margin-bottom: 32px;
+      color: #ff8a1e;
+    }
+    .login-card .logo i { font-size: 26px; }
+    .login-card .logo span { color: #eef1f4; }
+    .login-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .login-card .sub { color: #8b95a1; font-size: 14px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #8b95a1;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0c0f12;
+      border: 1px solid #262c33;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #eef1f4;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #ff8a1e;
+      box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.15);
+    }
+    .password-strength {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #565f6a;
+    }
+    .password-strength .bar {
+      flex: 1;
+      height: 4px;
+      background: #262c33;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .password-strength .bar .fill {
+      width: 60%;
+      height: 100%;
+      background: #ff8a1e;
+      border-radius: 4px;
+    }
+    .btn-login {
+      width: 100%;
+      background: #ff8a1e;
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 16px;
+      color: #12100c;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 18px rgba(255, 138, 30, 0.3);
+      margin-top: 6px;
+    }
+    .btn-login:hover { background: #f57c0a; box-shadow: 0 8px 28px rgba(255, 138, 30, 0.5); }
+    .btn-login:active { transform: scale(0.97); }
+    .login-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+      font-size: 14px;
+    }
+    .login-footer a { color: #ff8a1e; font-weight: 700; text-decoration: none; }
+    .login-footer a:hover { text-decoration: underline; }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 26px 0 20px;
+      color: #565f6a;
+      font-size: 13px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #262c33;
+    }
+    /* زر جوجل المخصص */
+    .btn-google-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+    .btn-google-wrapper > div {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .btn-google-custom {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #262c33;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #eef1f4;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: inherit;
+    }
+    .btn-google-custom:hover {
+      background: #1e242b;
+      border-color: #3a424c;
+    }
+    .btn-google-custom i { font-size: 20px; color: #fff; }
+    .legal {
+      margin-top: 28px;
+      font-size: 11.5px;
+      color: #565f6a;
+      text-align: center;
+      line-height: 1.6;
+      border-top: 1px solid #1e242b;
+      padding-top: 22px;
+    }
+    .legal strong { color: #8b95a1; }
+    .legal .brand { color: #ff8a1e; }
+    .footer-note {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #3a424c;
+    }
+    .footer-note a { color: #565f6a; text-decoration: none; }
+    .footer-note a:hover { color: #8b95a1; }
+    /* إخفاء زر جوجل الرسمي الزائد */
+    #g_id_onload { display: none; }
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="logo">
+    <i class="fa-solid fa-gamepad"></i>
+    <span>Play</span>Masr
+  </div>
+  <h2>تسجيل الدخول</h2>
+  <p class="sub">أدخل بيانات حسابك للدخول إلى نظام الإدارة</p>
+
+  <form id="loginForm" onsubmit="return handleLogin(event)">
+    <div class="form-group">
+      <label for="email">البريد الإلكتروني</label>
+      <input type="email" id="email" placeholder="name@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="password">كلمة المرور</label>
+      <input type="password" id="password" placeholder="••••••••" required />
+      <div class="password-strength">
+        <span>نسبة كلمة المرور</span>
+        <div class="bar"><div class="fill"></div></div>
+      </div>
+    </div>
+    <button type="submit" class="btn-login"><i class="fa-solid fa-arrow-right"></i> دخول</button>
+  </form>
+
+  <div class="login-footer">
+    <a href="#">إنشاء حساب جديد</a>
+    <a href="#" style="color:#565f6a; font-weight:400;">نسيت كلمة المرور؟</a>
+  </div>
+
+  <div class="divider">أو</div>
+
+  <!-- خيار 1: زر جوجل الرسمي (حقيقي) - بيظهر لو حطيت Client ID -->
+  <div id="googleBtnContainer" class="btn-google-wrapper" style="margin-bottom: 10px;"></div>
+  
+  <!-- خيار 2: زر جوجل العادي (محاكي/بديل) - بيشتغل لو مفيش Client ID أو كـ backup -->
+  <button id="googleFallbackBtn" class="btn-google-custom" onclick="handleGoogleFallback()">
+    <i class="fa-brands fa-google"></i>
+    <span>تسجيل الدخول عبر Google</span>
+  </button>
+  <p id="googleStatus" style="font-size: 11px; color: #565f6a; margin-top: 6px; text-align: center;"></p>
+
+  <div class="legal">
+    <strong>Play Masr</strong> is an independent management system.<br />
+    Not affiliated with Sony Interactive Entertainment or PlayStation.<br />
+    <span class="brand">بلادي مصر</span> هو نظام إدارة مستقل. غير تابع لشركة Sony أو PlayStation.
+  </div>
+  <div class="footer-note">
+    <span>ديسمبر 2026 ©</span>
+    <span>الجامعة الفني</span>
+    <a href="#">حذف البيانات</a>
+  </div>
+</div>
+
+<script>
+  // ================================================================
+  // 1. ضع Client ID بتاعك هنا (مجاني، هتاخده من Google Cloud Console)
+  //    سيبها فارغة عشان تشتغل بالمحاكي، أو اكتب الـ ID عشان تشتغل حقيقي.
+  // ================================================================
+  const GOOGLE_CLIENT_ID = '';  // مثلاً: '123456789-abc123def.apps.googleusercontent.com'
+
+  // دالة تسجيل الدخول العادي
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    if (!email || !password) {
+      alert('يرجى إدخال البريد الإلكتروني وكلمة المرور.');
+      return false;
+    }
+    alert('✅ تم تسجيل الدخول بنجاح (بالبريد)');
+    // window.location.href = 'dashboard.html';
+    return false;
+  }
+
+  // دالة المحاكي (لو معملتش Client ID)
+  function handleGoogleFallback() {
+    document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
+    setTimeout(() => {
+      document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
+      alert('✅ تم تسجيل الدخول بحساب Google (محاكي - للعرض)');
+      // window.location.href = 'dashboard.html';
+    }, 1200);
+  }
+
+  // ================================================================
+  // تهيئة زر جوجل الرسمي (لو الـ Client ID متاح)
+  // ================================================================
+  window.onload = function() {
+    const container = document.getElementById('googleBtnContainer');
+    const fallbackBtn = document.getElementById('googleFallbackBtn');
+    const statusEl = document.getElementById('googleStatus');
+
+    // لو المستخدم حط Client ID حقيقي
+    if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID.length > 10) {
+      // أخفى الزر المحاكي عشان ما يتكررش
+      fallbackBtn.style.display = 'none';
+      statusEl.textContent = '🔐 تسجيل آمن عبر Google';
+
+      // ارسم زر جوجل الرسمي باستخدام مكتبة GSI
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          // دي هتتنفذ لما المستخد يختار حسابه ويدوس موافق
+          console.log('Google JWT:', response.credential);
+          alert('✅ تم تسجيل الدخول بنجاح عبر Google (حقيقي)');
+          // هنا هتبعت التوكن للسيرفر بتاعك عشان تتحقق منه
+          // window.location.href = 'dashboard.html';
+        },
+        cancel_on_tap_outside: false,
+      });
+
+      google.accounts.id.renderButton(
+        container,
+        { 
+          theme: 'outline', 
+          size: 'large', 
+          width: 400,
+          text: 'signin_with',
+          shape: 'rectangular',
+          logo_alignment: 'left'
+        }
+      );
+    } else {
+      // لو مفيش Client ID، خلي الزر المحاكي ظاهر واكتب رسالة توجيهية
+      fallbackBtn.style.display = 'flex';
+      statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود (مجاني)';
+    }
+  };
+</script>
+
+</body>
+</html>
