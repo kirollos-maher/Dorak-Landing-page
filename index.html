@@ -539,19 +539,20 @@ function resetToGuest() {
   const heroCtas = document.getElementById('heroCtas');
   const ctaRow = document.getElementById('ctaRow');
 
+  // ✅ التعديل هنا: الأزرار بتودي على login.html بدلاً من #cta
   headerActions.innerHTML = `
     <a href="login.html" class="hdr-login">تسجيل الدخول</a>
-    <a href="#cta" class="btn btn-amber">جرب دورك مجاناً</a>
+    <a href="login.html" class="btn btn-amber">جرب دورك مجاناً</a>
   `;
 
   heroCtas.innerHTML = `
-    <a href="#cta" class="btn btn-amber btn-lg"><i class="fa-solid fa-bolt"></i> ابدأ تجربتك المجانية</a>
+    <a href="login.html" class="btn btn-amber btn-lg"><i class="fa-solid fa-bolt"></i> ابدأ تجربتك المجانية</a>
     <a href="#features" class="btn btn-ghost btn-lg">شوف المميزات <i class="fa-solid fa-arrow-left"></i></a>
   `;
 
   ctaRow.innerHTML = `
-    <a href="#cta" class="btn btn-amber btn-lg"><i class="fa-solid fa-bolt"></i> ابدأ تجربتك المجانية</a>
-    <a href="#cta" class="btn btn-ghost btn-lg">تواصل معانا <i class="fa-solid fa-arrow-left"></i></a>
+    <a href="login.html" class="btn btn-amber btn-lg"><i class="fa-solid fa-bolt"></i> ابدأ تجربتك المجانية</a>
+    <a href="#features" class="btn btn-ghost btn-lg">شوف المميزات <i class="fa-solid fa-arrow-left"></i></a>
   `;
 }
 
