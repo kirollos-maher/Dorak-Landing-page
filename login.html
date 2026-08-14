@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Play Masr — تسجيل الدخول</title>
+  <title>DORAK — تسجيل الدخول</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
   <!-- تحميل مكتبة جوجل الرسمية (مجانية) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
-    /* نفس التصميم الأنيق اللي طلبتَه */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Cairo', sans-serif;
@@ -44,17 +43,30 @@
       background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
       pointer-events: none;
     }
-    .login-card .logo {
+    
+    /* ---------- نفس براند DORAK من الصفحة الرئيسية ---------- */
+    .brand {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 900;
+      gap: 10px;
+      font-weight: 800;
       font-size: 22px;
+      letter-spacing: .02em;
       margin-bottom: 32px;
+      color: #eef1f4;
+    }
+    .brand .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff8a1e;
+      box-shadow: 0 0 0 4px rgba(255, 138, 30, 0.12);
+    }
+    .brand .mark {
+      font-family: 'JetBrains Mono', monospace;
       color: #ff8a1e;
     }
-    .login-card .logo i { font-size: 26px; }
-    .login-card .logo span { color: #eef1f4; }
+
     .login-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
     .login-card .sub { color: #8b95a1; font-size: 14px; margin-bottom: 28px; }
     .form-group { margin-bottom: 18px; }
@@ -141,7 +153,6 @@
       height: 1px;
       background: #262c33;
     }
-    /* زر جوجل المخصص */
     .btn-google-wrapper {
       width: 100%;
       display: flex;
@@ -173,6 +184,8 @@
       border-color: #3a424c;
     }
     .btn-google-custom i { font-size: 20px; color: #fff; }
+    
+    /* ---------- الفوتر والأسفل مطابق لـ DORAK ---------- */
     .legal {
       margin-top: 28px;
       font-size: 11.5px;
@@ -183,32 +196,38 @@
       padding-top: 22px;
     }
     .legal strong { color: #8b95a1; }
-    .legal .brand { color: #ff8a1e; }
+    .legal .brand-tag { color: #ff8a1e; font-weight: 700; }
+    
     .footer-note {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       margin-top: 10px;
       font-size: 11px;
       color: #3a424c;
+      gap: 14px;
     }
     .footer-note a { color: #565f6a; text-decoration: none; }
     .footer-note a:hover { color: #8b95a1; }
-    /* إخفاء زر جوجل الرسمي الزائد */
+    
     #g_id_onload { display: none; }
     @media (max-width: 480px) {
       .login-card { padding: 32px 20px; }
+      .brand { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
 <div class="login-card">
-  <div class="logo">
-    <i class="fa-solid fa-gamepad"></i>
-    <span>Play</span>Masr
+  <!-- شعار DORAK الجديد بدل Play Masr -->
+  <div class="brand">
+    <span class="dot"></span>
+    DORAK
+    <span class="mark">✦</span>
   </div>
+  
   <h2>تسجيل الدخول</h2>
-  <p class="sub">أدخل بيانات حسابك للدخول إلى نظام الإدارة</p>
+  <p class="sub">أدخل بيانات حسابك للدخول إلى لوحة تحكم دورك</p>
 
   <form id="loginForm" onsubmit="return handleLogin(event)">
     <div class="form-group">
@@ -233,36 +252,34 @@
 
   <div class="divider">أو</div>
 
-  <!-- خيار 1: زر جوجل الرسمي (حقيقي) - بيظهر لو حطيت Client ID -->
+  <!-- زر جوجل الرسمي -->
   <div id="googleBtnContainer" class="btn-google-wrapper" style="margin-bottom: 10px;"></div>
   
-  <!-- خيار 2: زر جوجل العادي (محاكي/بديل) - بيشتغل لو مفيش Client ID أو كـ backup -->
+  <!-- زر جوجل الاحتياطي (محاكي) -->
   <button id="googleFallbackBtn" class="btn-google-custom" onclick="handleGoogleFallback()">
     <i class="fa-brands fa-google"></i>
     <span>تسجيل الدخول عبر Google</span>
   </button>
   <p id="googleStatus" style="font-size: 11px; color: #565f6a; margin-top: 6px; text-align: center;"></p>
 
+  <!-- النصوص القانونية بتاعة DORAK -->
   <div class="legal">
-    <strong>Play Masr</strong> is an independent management system.<br />
-    Not affiliated with Sony Interactive Entertainment or PlayStation.<br />
-    <span class="brand">بلادي مصر</span> هو نظام إدارة مستقل. غير تابع لشركة Sony أو PlayStation.
+    <strong>DORAK</strong> — نظام إدارة صالات البلايستيشن والجيمنج.<br />
+    <span class="brand-tag">دورك</span> مش تابع لأي شركة ألعاب خارجية.
   </div>
   <div class="footer-note">
-    <span>ديسمبر 2026 ©</span>
-    <span>الجامعة الفني</span>
+    <span>© 2026 DORAK</span>
+    <span>نظام إدارة صالات البلايستيشن والجيمنج</span>
     <a href="#">حذف البيانات</a>
   </div>
 </div>
 
 <script>
   // ================================================================
-  // 1. ضع Client ID بتاعك هنا (مجاني، هتاخده من Google Cloud Console)
-  //    سيبها فارغة عشان تشتغل بالمحاكي، أو اكتب الـ ID عشان تشتغل حقيقي.
+  // الـ Client ID بتاعك (شغال)
   // ================================================================
-  const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';  // مثلاً: '123456789-abc123def.apps.googleusercontent.com'
+  const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
-  // دالة تسجيل الدخول العادي
   function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
@@ -272,43 +289,31 @@
       return false;
     }
     alert('✅ تم تسجيل الدخول بنجاح (بالبريد)');
-    // window.location.href = 'dashboard.html';
     return false;
   }
 
-  // دالة المحاكي (لو معملتش Client ID)
   function handleGoogleFallback() {
     document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
     setTimeout(() => {
       document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
       alert('✅ تم تسجيل الدخول بحساب Google (محاكي - للعرض)');
-      // window.location.href = 'dashboard.html';
     }, 1200);
   }
 
-  // ================================================================
-  // تهيئة زر جوجل الرسمي (لو الـ Client ID متاح)
-  // ================================================================
   window.onload = function() {
     const container = document.getElementById('googleBtnContainer');
     const fallbackBtn = document.getElementById('googleFallbackBtn');
     const statusEl = document.getElementById('googleStatus');
 
-    // لو المستخدم حط Client ID حقيقي
     if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID.length > 10) {
-      // أخفى الزر المحاكي عشان ما يتكررش
       fallbackBtn.style.display = 'none';
       statusEl.textContent = '🔐 تسجيل آمن عبر Google';
 
-      // ارسم زر جوجل الرسمي باستخدام مكتبة GSI
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: (response) => {
-          // دي هتتنفذ لما المستخد يختار حسابه ويدوس موافق
           console.log('Google JWT:', response.credential);
           alert('✅ تم تسجيل الدخول بنجاح عبر Google (حقيقي)');
-          // هنا هتبعت التوكن للسيرفر بتاعك عشان تتحقق منه
-          // window.location.href = 'dashboard.html';
         },
         cancel_on_tap_outside: false,
       });
@@ -325,9 +330,8 @@
         }
       );
     } else {
-      // لو مفيش Client ID، خلي الزر المحاكي ظاهر واكتب رسالة توجيهية
       fallbackBtn.style.display = 'flex';
-      statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود (مجاني)';
+      statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود';
     }
   };
 </script>
