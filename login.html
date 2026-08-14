@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DORAK — تسجيل الدخول</title>
+  
+  <title>تسجيل الدخول - نظام إدارة بلايستيشن DORAK</title>
+  <meta name="description" content="سجل الدخول إلى نظام DORAK لإدارة صالات البلايستيشن. تابع أجهزتك، إدارة الوقت، وتحليل الأرباح من مكان واحد.">
+  <meta name="robots" content="noindex, follow">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
@@ -281,9 +282,6 @@
 </div>
 
 <script>
-  // ============================================================
-  //  إعدادات Firebase
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
     authDomain: "dorakdb-0.firebaseapp.com",
@@ -299,9 +297,6 @@
 
   const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
-  // ============================================================
-  //  دوال مساعدة للتعامل مع Firebase
-  // ============================================================
   function getUsersFromDB() {
     return new Promise((resolve) => {
       db.ref('users').once('value').then((snapshot) => {
@@ -316,7 +311,6 @@
     });
   }
 
-  // دالة لكتابة مستخدم جديد في Firebase
   function saveUserToDB(userData) {
     const newUserRef = db.ref('users').push();
     return newUserRef.set({
@@ -329,9 +323,11 @@
     });
   }
 
-  // ============================================================
-  //  تسجيل الدخول العادي (يدعم Firebase + localStorage القديم)
-  // ============================================================
+  async function findUserByEmail(email) {
+    const users = await getUsersFromDB();
+    return users.find(u => u.email === email) || null;
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
@@ -345,16 +341,13 @@
       return false;
     }
 
-    // 1️⃣ البحث في Firebase أولاً
     let user = await findUserByEmail(email);
 
-    // 2️⃣ لو مش موجود في Firebase، ندور في localStorage القديم
     if (!user) {
       const oldUsers = JSON.parse(localStorage.getItem('dorak_users') || '[]');
       const oldUser = oldUsers.find(u => u.email === email && u.password === password);
 
       if (oldUser) {
-        // ✅ لقيناه في localStorage → ننقله لـ Firebase
         try {
           await saveUserToDB({
             name: oldUser.name,
@@ -363,15 +356,8 @@
             picture: oldUser.picture || null,
             provider: 'migrated_from_local'
           });
-          console.log('✅ تم ترحيل المستخدم القديم إلى Firebase');
-
-          // نجيب المستخدم من Firebase بعد الترحيل
           const users = await getUsersFromDB();
           user = users.find(u => u.email === email);
-
-          // نمسح localStorage القديم عشان ما نكررش الترحيل
-          // localStorage.removeItem('dorak_users'); // (اختياري)
-
         } catch (err) {
           errorEl.textContent = '⚠️ حدث خطأ أثناء ترحيل حسابك القديم. حاول مرة أخرى.';
           errorEl.style.display = 'block';
@@ -380,14 +366,12 @@
       }
     }
 
-    // 3️⃣ التحقق النهائي: هل المستخدم موجود والرقم السري صحيح؟
     if (!user || user.password !== password) {
       errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       errorEl.style.display = 'block';
       return false;
     }
 
-    // ✅ تسجيل الدخول ناجح
     const session = {
       name: user.name,
       email: user.email,
@@ -398,15 +382,6 @@
     return false;
   }
 
-  // دالة البحث عن مستخدم بالإيميل من Firebase
-  async function findUserByEmail(email) {
-    const users = await getUsersFromDB();
-    return users.find(u => u.email === email) || null;
-  }
-
-  // ============================================================
-  //  تسجيل الدخول بجوجل (يكتب في Firebase)
-  // ============================================================
   async function handleGoogleLogin(credential) {
     try {
       const payload = JSON.parse(atob(credential.split('.')[1]));
@@ -414,10 +389,8 @@
       const name = payload.name || email.split('@')[0] || 'مستخدم Google';
       const picture = payload.picture || null;
 
-      // البحث عن المستخدم في Firebase
       let user = await findUserByEmail(email);
 
-      // لو مش موجود، نضيفه في Firebase
       if (!user) {
         await saveUserToDB({
           name: name,
@@ -426,10 +399,8 @@
           picture: picture,
           provider: 'google'
         });
-        console.log('✅ تم إنشاء مستخدم جديد من جوجل في Firebase');
       }
 
-      // حفظ الجلسة
       const session = { name, email, picture };
       localStorage.setItem('dorak_user', JSON.stringify(session));
       window.location.href = 'dashboard.html';
@@ -440,9 +411,6 @@
     }
   }
 
-  // ============================================================
-  //  زر جوجل الاحتياطي (محاكي - للاختبار)
-  // ============================================================
   function handleGoogleFallback() {
     document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
     setTimeout(async () => {
@@ -469,9 +437,6 @@
     }, 1200);
   }
 
-  // ============================================================
-  //  تهيئة زر جوجل الرسمي
-  // ============================================================
   window.onload = function() {
     if (localStorage.getItem('dorak_user')) {
       window.location.href = 'dashboard.html';
