@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DORAK — إنشاء حساب جديد</title>
+  
+  <title>إنشاء حساب جديد - نظام إدارة بلايستيشن DORAK</title>
+  <meta name="description" content="أنشئ حسابك في نظام DORAK لإدارة صالات البلايستيشن. ابدأ في تتبع أجهزتك وإدارة وقت اللعب بكل سهولة.">
+  <meta name="robots" content="noindex, follow">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   
@@ -222,9 +225,6 @@
 </div>
 
 <script>
-  // ============================================================
-  //  بيانات Firebase الخاصة بك
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
     authDomain: "dorakdb-0.firebaseapp.com",
@@ -235,13 +235,9 @@
     appId: "1:543545007670:web:78f6e765e72006d98b4297"
   };
 
-  // تهيئة Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  // ============================================================
-  //  دوال مساعدة للقراءة من Firebase
-  // ============================================================
   function getUsersFromDB() {
     return new Promise((resolve) => {
       db.ref('users').once('value').then((snapshot) => {
@@ -256,47 +252,35 @@
     });
   }
 
-  // ============================================================
-  //  دالة التسجيل (بتكتب في Firebase)
-  // ============================================================
   async function handleRegister(e) {
     e.preventDefault();
-
-    // جلب البيانات من المدخلات
     const name = document.getElementById('fullName').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const confirm = document.getElementById('confirmPassword').value;
-
     const errorEl = document.getElementById('registerError');
     const successEl = document.getElementById('registerSuccess');
-    
-    // إخفاء أي رسائل سابقة
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
 
-    // 1. التحقق من الحقول الفارغة
     if (!name || !email || !password || !confirm) {
       errorEl.textContent = 'يرجى ملء جميع الحقول.';
       errorEl.style.display = 'block';
       return false;
     }
 
-    // 2. التحقق من طول كلمة المرور
     if (password.length < 6) {
       errorEl.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
       errorEl.style.display = 'block';
       return false;
     }
 
-    // 3. التحقق من تطابق كلمة المرور مع تأكيدها
     if (password !== confirm) {
       errorEl.textContent = 'كلمة المرور وتأكيدها غير متطابقين.';
       errorEl.style.display = 'block';
       return false;
     }
 
-    // 4. البحث في Firebase عن البريد الإلكتروني (منع التكرار)
     const users = await getUsersFromDB();
     if (users.find(u => u.email === email)) {
       errorEl.textContent = 'البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.';
@@ -304,32 +288,25 @@
       return false;
     }
 
-    // 5. ✅ كل البيانات سليمة.. نكتب في Firebase
     try {
-      // إنشاء مرجع جديد داخل `users/`
       const newUserRef = db.ref('users').push();
-      
-      // كتابة البيانات
       await newUserRef.set({
         name: name,
         email: email,
-        password: password,  // (في التطوير الفعلي هتحتاج تشفرها)
+        password: password,
         picture: null,
         provider: 'email',
         createdAt: new Date().toISOString()
       });
 
-      // رسالة نجاح
       successEl.textContent = '✅ تم إنشاء الحساب بنجاح! جاري تحويلك لتسجيل الدخول...';
       successEl.style.display = 'block';
 
-      // التحويل لصفحة تسجيل الدخول بعد 1.5 ثانية
       setTimeout(() => {
         window.location.href = 'login.html';
       }, 1500);
 
     } catch (err) {
-      // في حالة حدوث أي خطأ في الكتابة
       errorEl.textContent = '⚠️ حدث خطأ في السيرفر: ' + err.message;
       errorEl.style.display = 'block';
     }
@@ -337,9 +314,6 @@
     return false;
   }
 
-  // ============================================================
-  //  لو فيه جلسة مفتوحة، حول للـ Dashboard
-  // ============================================================
   window.onload = function() {
     if (localStorage.getItem('dorak_user')) {
       window.location.href = 'dashboard.html';
