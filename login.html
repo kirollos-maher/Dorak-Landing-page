@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
@@ -227,7 +228,6 @@
 <body>
 
 <div class="login-card">
-  <!-- زر الرجوع X -->
   <a href="index.html" class="close-btn"><i class="fa-solid fa-xmark"></i></a>
   
   <div class="brand">
@@ -281,7 +281,9 @@
 </div>
 
 <script>
-  // Firebase Config
+  // ============================================================
+  //  إعدادات Firebase (نفس اللي عندك)
+  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
     authDomain: "dorakdb-0.firebaseapp.com",
@@ -297,6 +299,9 @@
 
   const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
+  // ============================================================
+  //  دوال مساعدة للتعامل مع Firebase
+  // ============================================================
   function getUsersFromDB() {
     return new Promise((resolve) => {
       db.ref('users').once('value').then((snapshot) => {
@@ -316,6 +321,9 @@
     return users.find(u => u.email === email) || null;
   }
 
+  // ============================================================
+  //  تسجيل الدخول العادي (بالبريد والرقم السري)
+  // ============================================================
   async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
@@ -347,20 +355,94 @@
     return false;
   }
 
+  // ============================================================
+  //  تسجيل الدخول بجوجل (مع الكتابة في Firebase)
+  // ============================================================
+  async function handleGoogleLogin(credential) {
+    try {
+      // 1. فك تشفير البيانات من جوجل
+      const payload = JSON.parse(atob(credential.split('.')[1]));
+      const email = payload.email || '';
+      const name = payload.name || email.split('@')[0] || 'مستخدم Google';
+      const picture = payload.picture || null;
+
+      // 2. البحث عن المستخدم في Firebase
+      let user = await findUserByEmail(email);
+
+      // 3. لو مش موجود، اضيفه في Firebase
+      if (!user) {
+        const newUserRef = db.ref('users').push();
+        await newUserRef.set({
+          name: name,
+          email: email,
+          password: null, // مستخدم جوجل معندوش باسورد
+          picture: picture,
+          createdAt: new Date().toISOString(),
+          provider: 'google'
+        });
+        console.log('✅ تم إنشاء مستخدم جديد من جوجل في Firebase');
+      } else {
+        console.log('✅ مستخدم موجود بالفعل في Firebase');
+      }
+
+      // 4. حفظ الجلسة في localStorage
+      const session = {
+        name: name,
+        email: email,
+        picture: picture
+      };
+      localStorage.setItem('dorak_user', JSON.stringify(session));
+
+      // 5. التحويل للـ Dashboard
+      window.location.href = 'dashboard.html';
+
+    } catch (err) {
+      console.error('❌ خطأ في تسجيل الدخول بجوجل:', err);
+      alert('حدث خطأ أثناء تسجيل الدخول بجوجل. حاول مرة أخرى.');
+    }
+  }
+
+  // ============================================================
+  //  زر جوجل الاحتياطي (محاكي - للاختبار)
+  // ============================================================
   function handleGoogleFallback() {
     document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
-    setTimeout(() => {
-      const user = {
-        name: 'مستخدم Google',
-        email: 'user_google@gmail.com',
+    setTimeout(async () => {
+      // محاكاة بيانات مستخدم جوجل
+      const fakeEmail = 'user_google_test@gmail.com';
+      const fakeName = 'مستخدم Google (تجريبي)';
+      
+      // نكتبه في Firebase عشان يظهر في الأدمن حتى في وضع المحاكي
+      try {
+        let user = await findUserByEmail(fakeEmail);
+        if (!user) {
+          await db.ref('users').push({
+            name: fakeName,
+            email: fakeEmail,
+            password: null,
+            picture: null,
+            createdAt: new Date().toISOString(),
+            provider: 'google_simulator'
+          });
+        }
+      } catch (e) { console.warn('محاكي: فشل في الكتابة', e); }
+
+      const session = {
+        name: fakeName,
+        email: fakeEmail,
         picture: null
       };
-      localStorage.setItem('dorak_user', JSON.stringify(user));
+      localStorage.setItem('dorak_user', JSON.stringify(session));
+      document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
       window.location.href = 'dashboard.html';
     }, 1200);
   }
 
+  // ============================================================
+  //  تهيئة زر جوجل الرسمي
+  // ============================================================
   window.onload = function() {
+    // لو في جلسة مفتوحة، حول للـ Dashboard
     if (localStorage.getItem('dorak_user')) {
       window.location.href = 'dashboard.html';
       return;
@@ -377,14 +459,8 @@
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: (response) => {
-          const payload = JSON.parse(atob(response.credential.split('.')[1]));
-          const user = {
-            name: payload.name || payload.email?.split('@')[0] || 'مستخدم',
-            email: payload.email || '',
-            picture: payload.picture || null
-          };
-          localStorage.setItem('dorak_user', JSON.stringify(user));
-          window.location.href = 'dashboard.html';
+          // استدعاء الدالة الجديدة التي تكتب في Firebase
+          handleGoogleLogin(response.credential);
         },
         cancel_on_tap_outside: false,
       });
