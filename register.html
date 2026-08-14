@@ -221,6 +221,7 @@
 </div>
 
 <script>
+  // 🔥 Firebase Config - نفس البيانات الموجودة في admin.html و login.html
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
     authDomain: "dorakdb-0.firebaseapp.com",
@@ -231,9 +232,11 @@
     appId: "1:543545007670:web:78f6e765e72006d98b4297"
   };
 
+  // تهيئة Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
+  // دالة جلب المستخدمين من Firebase
   function getUsersFromDB() {
     return new Promise((resolve) => {
       db.ref('users').once('value').then((snapshot) => {
@@ -248,6 +251,7 @@
     });
   }
 
+  // دالة التسجيل
   async function handleRegister(e) {
     e.preventDefault();
     const name = document.getElementById('fullName').value.trim();
@@ -259,6 +263,7 @@
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
 
+    // التحقق من الحقول
     if (!name || !email || !password || !confirm) {
       errorEl.textContent = 'يرجى ملء جميع الحقول.';
       errorEl.style.display = 'block';
@@ -277,6 +282,7 @@
       return false;
     }
 
+    // التحقق من وجود البريد في Firebase
     const users = await getUsersFromDB();
     if (users.find(u => u.email === email)) {
       errorEl.textContent = 'البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.';
@@ -284,25 +290,32 @@
       return false;
     }
 
-    const newUserRef = db.ref('users').push();
-    await newUserRef.set({
-      name: name,
-      email: email,
-      password: password,
-      picture: null,
-      createdAt: new Date().toISOString()
-    });
+    // حفظ المستخدم في Firebase
+    try {
+      const newUserRef = db.ref('users').push();
+      await newUserRef.set({
+        name: name,
+        email: email,
+        password: password,
+        picture: null,
+        createdAt: new Date().toISOString()
+      });
 
-    successEl.textContent = '✅ تم إنشاء الحساب بنجاح! جاري تحويلك لتسجيل الدخول...';
-    successEl.style.display = 'block';
+      successEl.textContent = '✅ تم إنشاء الحساب بنجاح! جاري تحويلك لتسجيل الدخول...';
+      successEl.style.display = 'block';
 
-    setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 1500);
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 1500);
+    } catch (error) {
+      errorEl.textContent = '⚠️ حدث خطأ أثناء التسجيل: ' + error.message;
+      errorEl.style.display = 'block';
+    }
 
     return false;
   }
 
+  // التحقق من الجلسة
   window.onload = function() {
     if (localStorage.getItem('dorak_user')) {
       window.location.href = 'dashboard.html';
