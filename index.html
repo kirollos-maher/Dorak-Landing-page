@@ -64,7 +64,6 @@ a{color:inherit;text-decoration:none;}
 .hdr-login{font-size:13.5px;font-weight:700;color:var(--text-dim);padding:10px 6px;}
 .hdr-login:hover{color:var(--text);}
 
-/* أنماط جديدة للمستخدم المسجل */
 .hdr-user{
   font-size:13.5px;font-weight:700;color:var(--text);padding:10px 6px;
   display:flex;align-items:center;gap:8px;
@@ -496,7 +495,6 @@ function updateUI() {
     try {
       const user = JSON.parse(userData);
       const userName = user.name || 'مستخدم';
-      const userEmail = user.email || '';
 
       // تحديث الهيدر: إظهار اسم المستخدم وزر تسجيل الخروج
       headerActions.innerHTML = `
@@ -506,10 +504,10 @@ function updateUI() {
         </button>
       `;
 
-      // تحديث أزرار الهيرو: "لوحة التحكم" بدلاً من "جرب دورك مجاناً"
+      // ✅ التعديل المطلوب: زر "جرب 7 أيام مجانا" بدلاً من "لوحة التحكم"
       heroCtas.innerHTML = `
         <a href="dashboard.html" class="btn btn-amber btn-lg">
-          <i class="fa-solid fa-gauge-high"></i> لوحة التحكم
+          <i class="fa-solid fa-calendar-plus"></i> جرب 7 أيام مجانا
         </a>
         <a href="#features" class="btn btn-ghost btn-lg">
           شوف المميزات <i class="fa-solid fa-arrow-left"></i>
@@ -519,7 +517,7 @@ function updateUI() {
       // تحديث أزرار الـ CTA النهائية
       ctaRow.innerHTML = `
         <a href="dashboard.html" class="btn btn-amber btn-lg">
-          <i class="fa-solid fa-gauge-high"></i> اذهب للوحة التحكم
+          <i class="fa-solid fa-calendar-plus"></i> جرب 7 أيام مجانا
         </a>
         <a href="#features" class="btn btn-ghost btn-lg">
           شوف المميزات <i class="fa-solid fa-arrow-left"></i>
@@ -535,7 +533,7 @@ function updateUI() {
   }
 }
 
-// دالة إعادة تعيين الواجهة لحالة الزائر
+// دالة إعادة تعيين الواجهة لحالة الزائر (غير مسجل)
 function resetToGuest() {
   const headerActions = document.getElementById('headerActions');
   const heroCtas = document.getElementById('heroCtas');
@@ -560,8 +558,6 @@ function resetToGuest() {
 // دالة تسجيل الخروج
 function logoutUser() {
   localStorage.removeItem('dorak_user');
-  updateUI(); // تحديث الواجهة فوراً
-  // يمكن إعادة التوجيه إلى نفس الصفحة لتحديث الرابط
   window.location.href = 'index.html';
 }
 
@@ -570,7 +566,7 @@ document.addEventListener('DOMContentLoaded', function() {
   updateUI();
 });
 
-// الكود الخاص بالمؤقتات (كما هو)
+// الكود الخاص بالمؤقتات في الـ Mockup
 function tick(id, seconds, dir){
   const el = document.getElementById(id);
   if(!el) return;
