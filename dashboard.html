@@ -143,6 +143,29 @@
     .btn-home:hover {
       background: #f57c0a;
     }
+    .btn-admin {
+      width: 100%;
+      background: transparent;
+      border: 1px solid #ff8a1e;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #ff8a1e;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      text-decoration: none;
+    }
+    .btn-admin:hover {
+      background: #ff8a1e;
+      color: #0c0f12;
+    }
     .footer-note {
       margin-top: 24px;
       font-size: 11px;
@@ -162,8 +185,7 @@
 <div class="dashboard-card" id="dashboardCard">
   <div class="brand">
     <span class="dot"></span>
-    DORAK
-    <span class="mark">✦</span>
+    DORAK <span class="mark">✦</span>
   </div>
 
   <div class="avatar" id="avatarContainer">
@@ -175,6 +197,7 @@
   <div class="badge">✅ تم تسجيل الدخول بنجاح</div>
 
   <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
+  <a href="admin.html" class="btn-admin"><i class="fa-solid fa-user-gear"></i> لوحة تحكم الأدمن (إدارة المستخدمين)</a>
   <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
 
   <div class="footer-note">
@@ -186,19 +209,6 @@
   function logout() {
     localStorage.removeItem('dorak_user');
     window.location.href = 'login.html';
-  }
-
-  function decodeJwt(token) {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (e) {
-      return null;
-    }
   }
 
   window.onload = function() {
