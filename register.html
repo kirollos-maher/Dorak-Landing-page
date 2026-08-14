@@ -3,221 +3,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DORAK — إنشاء حساب جديد</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  
+  <title>DORAK — تسجيل سريع</title>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Cairo', sans-serif;
       background: #0c0f12;
       color: #eef1f4;
-      min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      background-image: radial-gradient(600px 400px at 80% 20%, rgba(255, 138, 30, 0.10), transparent 60%);
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
       padding: 20px;
     }
-    .register-card {
+    .card {
       background: #14181d;
       border: 1px solid #262c33;
       border-radius: 24px;
-      padding: 48px 40px;
-      max-width: 440px;
+      padding: 40px;
+      max-width: 400px;
       width: 100%;
-      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
-      position: relative;
-      overflow: hidden;
+      text-align: center;
     }
-    .register-card::before {
-      content: '';
-      position: absolute;
-      top: -50%; left: -50%;
-      width: 200%; height: 200%;
-      background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
-      pointer-events: none;
-    }
-    .close-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #8b95a1;
-      font-size: 28px;
-      text-decoration: none;
-      z-index: 10;
-      transition: color 0.2s;
-    }
-    .close-btn:hover { color: #eef1f4; }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 800;
-      font-size: 22px;
-      letter-spacing: .02em;
-      margin-bottom: 32px;
-      color: #eef1f4;
-    }
-    .brand .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff8a1e;
-      box-shadow: 0 0 0 4px rgba(255, 138, 30, 0.12);
-    }
-    .brand .mark {
-      font-family: 'JetBrains Mono', monospace;
-      color: #ff8a1e;
-    }
-    .register-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-    .register-card .sub { color: #8b95a1; font-size: 14px; margin-bottom: 28px; }
-    .form-group { margin-bottom: 18px; }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: #8b95a1;
-      margin-bottom: 6px;
-    }
-    .form-group input {
+    input {
       width: 100%;
+      padding: 12px;
+      margin: 8px 0;
       background: #0c0f12;
       border: 1px solid #262c33;
-      border-radius: 10px;
-      padding: 14px 16px;
+      border-radius: 8px;
       color: #eef1f4;
-      font-size: 15px;
-      font-family: inherit;
-      transition: border-color 0.2s;
+      font-size: 16px;
+      box-sizing: border-box;
     }
-    .form-group input:focus {
-      outline: none;
-      border-color: #ff8a1e;
-      box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.15);
-    }
-    .btn-register {
+    button {
       width: 100%;
+      padding: 14px;
       background: #ff8a1e;
       border: none;
-      border-radius: 10px;
-      padding: 16px;
-      font-weight: 800;
-      font-size: 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 18px;
       color: #12100c;
       cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 4px 18px rgba(255, 138, 30, 0.3);
-      margin-top: 6px;
-    }
-    .btn-register:hover { background: #f57c0a; box-shadow: 0 8px 28px rgba(255, 138, 30, 0.5); }
-    .btn-register:active { transform: scale(0.97); }
-    .register-footer {
-      display: flex;
-      justify-content: center;
-      margin-top: 18px;
-      font-size: 14px;
-    }
-    .register-footer a { color: #ff8a1e; font-weight: 700; text-decoration: none; }
-    .register-footer a:hover { text-decoration: underline; }
-    .legal {
-      margin-top: 28px;
-      font-size: 11.5px;
-      color: #565f6a;
-      text-align: center;
-      line-height: 1.6;
-      border-top: 1px solid #1e242b;
-      padding-top: 22px;
-    }
-    .legal .brand-tag { color: #ff8a1e; font-weight: 700; }
-    .footer-note {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-      font-size: 11px;
-      color: #3a424c;
-      gap: 14px;
-    }
-    .error-msg {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
       margin-top: 12px;
-      display: none;
-      text-align: center;
     }
-    .success-msg {
-      background: rgba(34, 197, 94, 0.15);
-      border: 1px solid #22c55e;
-      color: #22c55e;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
-      text-align: center;
-    }
-    @media (max-width: 480px) {
-      .register-card { padding: 32px 20px; }
-      .brand { font-size: 18px; }
-    }
+    button:hover { background: #f57c0a; }
+    #result { margin-top: 16px; font-weight: 700; }
   </style>
 </head>
 <body>
-
-<div class="register-card">
-  <a href="index.html" class="close-btn"><i class="fa-solid fa-xmark"></i></a>
-  
-  <div class="brand">
-    <span class="dot"></span>
-    DORAK <span class="mark">✦</span>
-  </div>
-  
-  <h2>إنشاء حساب جديد</h2>
-  <p class="sub">سجل بياناتك للانضمام إلى نظام دورك</p>
-
-  <form id="registerForm" onsubmit="return handleRegister(event)">
-    <div class="form-group">
-      <label for="fullName">الاسم الكامل</label>
-      <input type="text" id="fullName" placeholder="أحمد محمد" required />
-    </div>
-    <div class="form-group">
-      <label for="email">البريد الإلكتروني</label>
-      <input type="email" id="email" placeholder="name@example.com" required />
-    </div>
-    <div class="form-group">
-      <label for="password">كلمة المرور</label>
-      <input type="password" id="password" placeholder="••••••••" required minlength="6" />
-    </div>
-    <div class="form-group">
-      <label for="confirmPassword">تأكيد كلمة المرور</label>
-      <input type="password" id="confirmPassword" placeholder="••••••••" required />
-    </div>
-    <div id="registerError" class="error-msg"></div>
-    <div id="registerSuccess" class="success-msg"></div>
-    <button type="submit" class="btn-register"><i class="fa-solid fa-user-plus"></i> إنشاء حساب</button>
-  </form>
-
-  <div class="register-footer">
-    <a href="login.html">لديك حساب بالفعل؟ سجل الدخول</a>
-  </div>
-
-  <div class="legal">
-    <strong>DORAK</strong> — نظام إدارة صالات البلايستيشن والجيمنج.<br />
-    <span class="brand-tag">دورك</span> مش تابع لأي شركة ألعاب خارجية.
-  </div>
-  <div class="footer-note">
-    <span>© 2026 DORAK</span>
-    <span>نظام إدارة صالات البلايستيشن والجيمنج</span>
-  </div>
+<div class="card">
+  <h1>📝 تسجيل حساب جديد</h1>
+  <input type="text" id="name" placeholder="الاسم الكامل" />
+  <input type="email" id="email" placeholder="البريد الإلكتروني" />
+  <input type="password" id="pass" placeholder="كلمة المرور" />
+  <button onclick="register()">إنشاء حساب</button>
+  <div id="result"></div>
+  <p style="margin-top:20px;font-size:14px;color:#565f6a;">
+    <a href="login.html" style="color:#ff8a1e;">لديك حساب؟ سجل الدخول</a>
+  </p>
 </div>
 
 <script>
@@ -234,81 +81,42 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
 
-  function getUsersFromDB() {
-    return new Promise((resolve) => {
-      db.ref('users').once('value').then((snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const usersArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          resolve(usersArray);
-        } else {
-          resolve([]);
-        }
-      }).catch(() => resolve([]));
-    });
-  }
-
-  async function handleRegister(e) {
-    e.preventDefault();
-    const name = document.getElementById('fullName').value.trim();
+  function register() {
+    const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirm = document.getElementById('confirmPassword').value;
-    const errorEl = document.getElementById('registerError');
-    const successEl = document.getElementById('registerSuccess');
-    errorEl.style.display = 'none';
-    successEl.style.display = 'none';
+    const pass = document.getElementById('pass').value;
+    const result = document.getElementById('result');
 
-    if (!name || !email || !password || !confirm) {
-      errorEl.textContent = 'يرجى ملء جميع الحقول.';
-      errorEl.style.display = 'block';
-      return false;
+    if (!name || !email || !pass) {
+      result.innerHTML = '❌ املأ جميع الحقول';
+      result.style.color = '#ef4444';
+      return;
+    }
+    if (pass.length < 6) {
+      result.innerHTML = '❌ كلمة المرور 6 أحرف على الأقل';
+      result.style.color = '#ef4444';
+      return;
     }
 
-    if (password.length < 6) {
-      errorEl.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
-      errorEl.style.display = 'block';
-      return false;
-    }
+    result.innerHTML = '⏳ جاري التسجيل...';
+    result.style.color = '#ff8a1e';
 
-    if (password !== confirm) {
-      errorEl.textContent = 'كلمة المرور وتأكيدها غير متطابقين.';
-      errorEl.style.display = 'block';
-      return false;
-    }
-
-    const users = await getUsersFromDB();
-    if (users.find(u => u.email === email)) {
-      errorEl.textContent = 'البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.';
-      errorEl.style.display = 'block';
-      return false;
-    }
-
-    const newUserRef = db.ref('users').push();
-    await newUserRef.set({
+    db.ref('users').push({
       name: name,
       email: email,
-      password: password,
-      picture: null,
+      password: pass,
       createdAt: new Date().toISOString()
+    })
+    .then(() => {
+      result.innerHTML = '✅ تم التسجيل بنجاح! جاري التحويل...';
+      result.style.color = '#22c55e';
+      setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+    })
+    .catch((err) => {
+      result.innerHTML = '❌ خطأ: ' + err.message;
+      result.style.color = '#ef4444';
     });
-
-    successEl.textContent = '✅ تم إنشاء الحساب بنجاح! جاري تحويلك لتسجيل الدخول...';
-    successEl.style.display = 'block';
-
-    setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 1500);
-
-    return false;
   }
-
-  window.onload = function() {
-    if (localStorage.getItem('dorak_user')) {
-      window.location.href = 'dashboard.html';
-    }
-  };
 </script>
-
 </body>
 </html>
