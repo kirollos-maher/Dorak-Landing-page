@@ -37,6 +37,7 @@ a{color:inherit;text-decoration:none;}
 ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:10px;}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
 
+/* ---------- header ---------- */
 .site-header{
   position:sticky; top:0; z-index:100; background:rgba(12,15,18,.85); backdrop-filter:blur(16px);
   border-bottom:1px solid var(--border);
@@ -64,6 +65,7 @@ a{color:inherit;text-decoration:none;}
 .hdr-login{font-size:13.5px;font-weight:700;color:var(--text-dim);padding:10px 6px;}
 .hdr-login:hover{color:var(--text);}
 
+/* ---------- hero ---------- */
 .hero{padding:76px 0 60px;}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;}
 .eyebrow{
@@ -79,6 +81,7 @@ h1 .accent{color:var(--amber);}
 .hero-note{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-faint);font-weight:600;}
 .hero-note i{color:var(--teal);}
 
+/* ---------- hero mockup ---------- */
 .mock{
   background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-lg);
   box-shadow:0 30px 70px -20px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.02);
@@ -126,6 +129,7 @@ h1 .accent{color:var(--amber);}
 .mock-toast .ts{font-size:10.5px;color:var(--text-dim);}
 @keyframes toastPop{0%{transform:translateY(10px);opacity:0;}8%{transform:translateY(0);opacity:1;}80%{transform:translateY(0);opacity:1;}92%{transform:translateY(10px);opacity:0;}100%{transform:translateY(10px);opacity:0;}}
 
+/* ---------- multi-device highlight (signature) ---------- */
 .mdband{
   position:relative; margin:88px 0; padding:64px 0; background:var(--bg-sunken);
   border-top:1px solid var(--border); border-bottom:1px solid var(--border);
@@ -151,6 +155,7 @@ h1 .accent{color:var(--amber);}
 .orbit-line{position:absolute;border-top:1.5px dashed var(--border-strong);z-index:1;}
 .n1{top:6px;right:calc(50% - 32px);} .n2{top:26%;left:0;} .n3{bottom:26%;left:0;} .n4{bottom:6px;right:calc(50% - 32px);} .n5{top:26%;right:0;} .n6{bottom:26%;right:0;}
 
+/* ---------- steps ---------- */
 .steps-section{padding:90px 0;}
 .section-head{text-align:center;max-width:640px;margin:0 auto 54px;}
 .section-head .kicker{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;color:var(--amber);text-transform:uppercase;font-weight:700;margin-bottom:12px;}
@@ -167,6 +172,7 @@ h1 .accent{color:var(--amber);}
 .step-card p{font-size:13.5px;color:var(--text-dim);line-height:1.75;}
 .step-divider{position:absolute;top:30px;height:1.5px;background:repeating-linear-gradient(90deg,var(--border-strong) 0 6px,transparent 6px 12px);width:100%;right:50%;z-index:-1;}
 
+/* ---------- features ---------- */
 .features-section{padding:20px 0 90px;}
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .feature-card{
@@ -187,6 +193,7 @@ h1 .accent{color:var(--amber);}
 .feature-card p{font-size:13.5px;line-height:1.75;color:var(--text-dim);}
 .feature-card .soon{position:absolute;top:14px;left:16px;font-size:9.5px;font-weight:800;background:var(--teal-dim);color:var(--teal);padding:3px 8px;border-radius:10px;}
 
+/* ---------- comparison ---------- */
 .compare-section{padding:20px 0 100px;}
 .compare-table{
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;max-width:920px;margin:0 auto;
@@ -202,6 +209,7 @@ h1 .accent{color:var(--amber);}
 .ct-row .dorak-col{color:var(--text);text-align:center;font-weight:600;}
 .ct-row .old-col{color:var(--text-faint);text-align:center;}
 
+/* ---------- final CTA ---------- */
 .final-cta{padding:90px 0 100px;text-align:center;}
 .cta-card{
   background:linear-gradient(160deg, rgba(255,138,30,.14), var(--surface) 55%); border:1px solid var(--amber-dim);
@@ -211,6 +219,7 @@ h1 .accent{color:var(--amber);}
 .cta-card p{color:var(--text-dim);font-size:15.5px;margin-bottom:30px;}
 .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
 
+/* ---------- footer ---------- */
 .site-footer{border-top:1px solid var(--border);padding:40px 0;}
 .footer-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
 .footer-brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;}
@@ -218,6 +227,7 @@ h1 .accent{color:var(--amber);}
 .footer-links a:hover{color:var(--text);}
 .footer-fine{font-size:12px;color:var(--text-faint);}
 
+/* ---------- responsive ---------- */
 @media (max-width:980px){
   .nav-links{display:none;}
   .hero-grid{grid-template-columns:1fr;gap:44px;}
@@ -474,6 +484,7 @@ h1 .accent{color:var(--amber);}
 </footer>
 
 <script>
+// Cosmetic ticking countdowns in the hero mockup — purely decorative
 function tick(id, seconds, dir){
   const el = document.getElementById(id);
   if(!el) return;
