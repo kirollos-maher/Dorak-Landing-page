@@ -7,7 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -40,6 +46,17 @@
       background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
       pointer-events: none;
     }
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #8b95a1;
+      font-size: 28px;
+      text-decoration: none;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: #eef1f4; }
     .brand {
       display: flex;
       align-items: center;
@@ -210,6 +227,9 @@
 <body>
 
 <div class="login-card">
+  <!-- زر الرجوع X -->
+  <a href="index.html" class="close-btn"><i class="fa-solid fa-xmark"></i></a>
+  
   <div class="brand">
     <span class="dot"></span>
     DORAK <span class="mark">✦</span>
@@ -261,17 +281,42 @@
 </div>
 
 <script>
+  // Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
+    authDomain: "dorakdb-0.firebaseapp.com",
+    databaseURL: "https://dorakdb-0-default-rtdb.firebaseio.com",
+    projectId: "dorakdb-0",
+    storageBucket: "dorakdb-0.firebasestorage.app",
+    messagingSenderId: "543545007670",
+    appId: "1:543545007670:web:78f6e765e72006d98b4297"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
   const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
-  function getUsers() {
-    return JSON.parse(localStorage.getItem('dorak_users') || '[]');
+  function getUsersFromDB() {
+    return new Promise((resolve) => {
+      db.ref('users').once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const usersArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+          resolve(usersArray);
+        } else {
+          resolve([]);
+        }
+      }).catch(() => resolve([]));
+    });
   }
 
-  function saveUsers(users) {
-    localStorage.setItem('dorak_users', JSON.stringify(users));
+  async function findUserByEmail(email) {
+    const users = await getUsersFromDB();
+    return users.find(u => u.email === email) || null;
   }
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
@@ -284,10 +329,9 @@
       return false;
     }
 
-    const users = getUsers();
-    const user = users.find(u => u.email === email && u.password === password);
+    const user = await findUserByEmail(email);
 
-    if (!user) {
+    if (!user || user.password !== password) {
       errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       errorEl.style.display = 'block';
       return false;
