@@ -147,15 +147,8 @@
       height: 1px;
       background: #262c33;
     }
-    .btn-google-wrapper {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-    }
-    .btn-google-wrapper > div {
-      width: 100% !important;
-      max-width: 100% !important;
-    }
+    .btn-google-wrapper { width: 100%; display: flex; justify-content: center; }
+    .btn-google-wrapper > div { width: 100% !important; max-width: 100% !important; }
     .btn-google-custom {
       width: 100%;
       background: transparent;
@@ -173,10 +166,7 @@
       transition: background 0.2s, border-color 0.2s;
       font-family: inherit;
     }
-    .btn-google-custom:hover {
-      background: #1e242b;
-      border-color: #3a424c;
-    }
+    .btn-google-custom:hover { background: #1e242b; border-color: #3a424c; }
     .btn-google-custom i { font-size: 20px; color: #fff; }
     .legal {
       margin-top: 28px;
@@ -200,6 +190,17 @@
     .footer-note a { color: #565f6a; text-decoration: none; }
     .footer-note a:hover { color: #8b95a1; }
     #g_id_onload { display: none; }
+    .error-msg {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+      text-align: center;
+    }
     @media (max-width: 480px) {
       .login-card { padding: 32px 20px; }
       .brand { font-size: 18px; }
@@ -211,8 +212,7 @@
 <div class="login-card">
   <div class="brand">
     <span class="dot"></span>
-    DORAK
-    <span class="mark">✦</span>
+    DORAK <span class="mark">✦</span>
   </div>
   
   <h2>تسجيل الدخول</h2>
@@ -231,18 +231,18 @@
         <div class="bar"><div class="fill"></div></div>
       </div>
     </div>
+    <div id="loginError" class="error-msg"></div>
     <button type="submit" class="btn-login"><i class="fa-solid fa-arrow-right"></i> دخول</button>
   </form>
 
   <div class="login-footer">
-    <a href="#">إنشاء حساب جديد</a>
-    <a href="#" style="color:#565f6a; font-weight:400;">نسيت كلمة المرور؟</a>
+    <a href="register.html">إنشاء حساب جديد</a>
+    <a href="reset-password.html" style="color:#565f6a; font-weight:400;">نسيت كلمة المرور؟</a>
   </div>
 
   <div class="divider">أو</div>
 
   <div id="googleBtnContainer" class="btn-google-wrapper" style="margin-bottom: 10px;"></div>
-  
   <button id="googleFallbackBtn" class="btn-google-custom" onclick="handleGoogleFallback()">
     <i class="fa-brands fa-google"></i>
     <span>تسجيل الدخول عبر Google</span>
@@ -263,27 +263,65 @@
 <script>
   const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
+  function getUsers() {
+    return JSON.parse(localStorage.getItem('dorak_users') || '[]');
+  }
+
+  function saveUsers(users) {
+    localStorage.setItem('dorak_users', JSON.stringify(users));
+  }
+
   function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value.trim();
+    const errorEl = document.getElementById('loginError');
+    errorEl.style.display = 'none';
+
     if (!email || !password) {
-      alert('يرجى إدخال البريد الإلكتروني وكلمة المرور.');
+      errorEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور.';
+      errorEl.style.display = 'block';
       return false;
     }
-    alert('✅ تم تسجيل الدخول بنجاح (بالبريد)');
+
+    const users = getUsers();
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (!user) {
+      errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      errorEl.style.display = 'block';
+      return false;
+    }
+
+    const session = {
+      name: user.name,
+      email: user.email,
+      picture: user.picture || null
+    };
+    localStorage.setItem('dorak_user', JSON.stringify(session));
+    window.location.href = 'dashboard.html';
     return false;
   }
 
   function handleGoogleFallback() {
     document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
     setTimeout(() => {
-      document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
-      alert('✅ تم تسجيل الدخول بحساب Google (محاكي - للعرض)');
+      const user = {
+        name: 'مستخدم Google',
+        email: 'user_google@gmail.com',
+        picture: null
+      };
+      localStorage.setItem('dorak_user', JSON.stringify(user));
+      window.location.href = 'dashboard.html';
     }, 1200);
   }
 
   window.onload = function() {
+    if (localStorage.getItem('dorak_user')) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
     const container = document.getElementById('googleBtnContainer');
     const fallbackBtn = document.getElementById('googleFallbackBtn');
     const statusEl = document.getElementById('googleStatus');
@@ -295,23 +333,26 @@
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: (response) => {
-          console.log('Google JWT:', response.credential);
-          alert('✅ تم تسجيل الدخول بنجاح عبر Google (حقيقي)');
+          const payload = JSON.parse(atob(response.credential.split('.')[1]));
+          const user = {
+            name: payload.name || payload.email?.split('@')[0] || 'مستخدم',
+            email: payload.email || '',
+            picture: payload.picture || null
+          };
+          localStorage.setItem('dorak_user', JSON.stringify(user));
+          window.location.href = 'dashboard.html';
         },
         cancel_on_tap_outside: false,
       });
 
-      google.accounts.id.renderButton(
-        container,
-        { 
-          theme: 'outline', 
-          size: 'large', 
-          width: 400,
-          text: 'signin_with',
-          shape: 'rectangular',
-          logo_alignment: 'left'
-        }
-      );
+      google.accounts.id.renderButton(container, {
+        theme: 'outline',
+        size: 'large',
+        width: 400,
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'left'
+      });
     } else {
       fallbackBtn.style.display = 'flex';
       statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود';
