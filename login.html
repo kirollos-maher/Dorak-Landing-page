@@ -282,7 +282,7 @@
 
 <script>
   // ============================================================
-  //  إعدادات Firebase (نفس اللي عندك)
+  //  إعدادات Firebase
   // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
@@ -316,13 +316,21 @@
     });
   }
 
-  async function findUserByEmail(email) {
-    const users = await getUsersFromDB();
-    return users.find(u => u.email === email) || null;
+  // دالة لكتابة مستخدم جديد في Firebase
+  function saveUserToDB(userData) {
+    const newUserRef = db.ref('users').push();
+    return newUserRef.set({
+      name: userData.name,
+      email: userData.email,
+      password: userData.password || null,
+      picture: userData.picture || null,
+      provider: userData.provider || 'email',
+      createdAt: new Date().toISOString()
+    });
   }
 
   // ============================================================
-  //  تسجيل الدخول العادي (بالبريد والرقم السري)
+  //  تسجيل الدخول العادي (يدعم Firebase + localStorage القديم)
   // ============================================================
   async function handleLogin(e) {
     e.preventDefault();
@@ -337,14 +345,49 @@
       return false;
     }
 
-    const user = await findUserByEmail(email);
+    // 1️⃣ البحث في Firebase أولاً
+    let user = await findUserByEmail(email);
 
+    // 2️⃣ لو مش موجود في Firebase، ندور في localStorage القديم
+    if (!user) {
+      const oldUsers = JSON.parse(localStorage.getItem('dorak_users') || '[]');
+      const oldUser = oldUsers.find(u => u.email === email && u.password === password);
+
+      if (oldUser) {
+        // ✅ لقيناه في localStorage → ننقله لـ Firebase
+        try {
+          await saveUserToDB({
+            name: oldUser.name,
+            email: oldUser.email,
+            password: oldUser.password,
+            picture: oldUser.picture || null,
+            provider: 'migrated_from_local'
+          });
+          console.log('✅ تم ترحيل المستخدم القديم إلى Firebase');
+
+          // نجيب المستخدم من Firebase بعد الترحيل
+          const users = await getUsersFromDB();
+          user = users.find(u => u.email === email);
+
+          // نمسح localStorage القديم عشان ما نكررش الترحيل
+          // localStorage.removeItem('dorak_users'); // (اختياري)
+
+        } catch (err) {
+          errorEl.textContent = '⚠️ حدث خطأ أثناء ترحيل حسابك القديم. حاول مرة أخرى.';
+          errorEl.style.display = 'block';
+          return false;
+        }
+      }
+    }
+
+    // 3️⃣ التحقق النهائي: هل المستخدم موجود والرقم السري صحيح؟
     if (!user || user.password !== password) {
       errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       errorEl.style.display = 'block';
       return false;
     }
 
+    // ✅ تسجيل الدخول ناجح
     const session = {
       name: user.name,
       email: user.email,
@@ -355,45 +398,40 @@
     return false;
   }
 
+  // دالة البحث عن مستخدم بالإيميل من Firebase
+  async function findUserByEmail(email) {
+    const users = await getUsersFromDB();
+    return users.find(u => u.email === email) || null;
+  }
+
   // ============================================================
-  //  تسجيل الدخول بجوجل (مع الكتابة في Firebase)
+  //  تسجيل الدخول بجوجل (يكتب في Firebase)
   // ============================================================
   async function handleGoogleLogin(credential) {
     try {
-      // 1. فك تشفير البيانات من جوجل
       const payload = JSON.parse(atob(credential.split('.')[1]));
       const email = payload.email || '';
       const name = payload.name || email.split('@')[0] || 'مستخدم Google';
       const picture = payload.picture || null;
 
-      // 2. البحث عن المستخدم في Firebase
+      // البحث عن المستخدم في Firebase
       let user = await findUserByEmail(email);
 
-      // 3. لو مش موجود، اضيفه في Firebase
+      // لو مش موجود، نضيفه في Firebase
       if (!user) {
-        const newUserRef = db.ref('users').push();
-        await newUserRef.set({
+        await saveUserToDB({
           name: name,
           email: email,
-          password: null, // مستخدم جوجل معندوش باسورد
+          password: null,
           picture: picture,
-          createdAt: new Date().toISOString(),
           provider: 'google'
         });
         console.log('✅ تم إنشاء مستخدم جديد من جوجل في Firebase');
-      } else {
-        console.log('✅ مستخدم موجود بالفعل في Firebase');
       }
 
-      // 4. حفظ الجلسة في localStorage
-      const session = {
-        name: name,
-        email: email,
-        picture: picture
-      };
+      // حفظ الجلسة
+      const session = { name, email, picture };
       localStorage.setItem('dorak_user', JSON.stringify(session));
-
-      // 5. التحويل للـ Dashboard
       window.location.href = 'dashboard.html';
 
     } catch (err) {
@@ -408,30 +446,23 @@
   function handleGoogleFallback() {
     document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
     setTimeout(async () => {
-      // محاكاة بيانات مستخدم جوجل
       const fakeEmail = 'user_google_test@gmail.com';
       const fakeName = 'مستخدم Google (تجريبي)';
-      
-      // نكتبه في Firebase عشان يظهر في الأدمن حتى في وضع المحاكي
+
       try {
         let user = await findUserByEmail(fakeEmail);
         if (!user) {
-          await db.ref('users').push({
+          await saveUserToDB({
             name: fakeName,
             email: fakeEmail,
             password: null,
             picture: null,
-            createdAt: new Date().toISOString(),
             provider: 'google_simulator'
           });
         }
       } catch (e) { console.warn('محاكي: فشل في الكتابة', e); }
 
-      const session = {
-        name: fakeName,
-        email: fakeEmail,
-        picture: null
-      };
+      const session = { name: fakeName, email: fakeEmail, picture: null };
       localStorage.setItem('dorak_user', JSON.stringify(session));
       document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
       window.location.href = 'dashboard.html';
@@ -442,7 +473,6 @@
   //  تهيئة زر جوجل الرسمي
   // ============================================================
   window.onload = function() {
-    // لو في جلسة مفتوحة، حول للـ Dashboard
     if (localStorage.getItem('dorak_user')) {
       window.location.href = 'dashboard.html';
       return;
@@ -459,7 +489,6 @@
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: (response) => {
-          // استدعاء الدالة الجديدة التي تكتب في Firebase
           handleGoogleLogin(response.credential);
         },
         cancel_on_tap_outside: false,
