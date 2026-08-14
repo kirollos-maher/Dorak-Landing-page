@@ -117,6 +117,8 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      text-decoration: none;
+      margin-top: 10px;
     }
     .btn-logout:hover {
       background: #ef4444;
@@ -138,20 +140,21 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+      text-decoration: none;
     }
     .btn-home:hover {
       background: #f57c0a;
     }
-    .btn-admin {
+    .btn-trial {
       width: 100%;
       background: transparent;
-      border: 1px solid #ff8a1e;
+      border: 1px solid #22c55e;
       border-radius: 10px;
       padding: 14px;
       font-weight: 700;
       font-size: 15px;
-      color: #ff8a1e;
+      color: #22c55e;
       cursor: pointer;
       transition: background 0.2s, color 0.2s;
       font-family: inherit;
@@ -159,11 +162,11 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin-bottom: 12px;
       text-decoration: none;
+      margin-bottom: 10px;
     }
-    .btn-admin:hover {
-      background: #ff8a1e;
+    .btn-trial:hover {
+      background: #22c55e;
       color: #0c0f12;
     }
     .footer-note {
@@ -197,8 +200,10 @@
   <div class="badge">✅ تم تسجيل الدخول بنجاح</div>
 
   <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
-  <a href="admin.html" class="btn-admin"><i class="fa-solid fa-user-gear"></i> لوحة تحكم الأدمن (إدارة المستخدمين)</a>
-  <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+  
+  <a href="index.html" class="btn-trial"><i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية دلوقتي</a>
+
+  <a href="#" class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a>
 
   <div class="footer-note">
     <span>© 2026 DORAK — نظام إدارة صالات البلايستيشن والجيمنج</span>
