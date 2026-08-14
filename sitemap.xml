@@ -10,24 +10,24 @@
     <loc>https://kirollos-maher.github.io/Dorak-Landing-page/login.html</loc>
     <lastmod>2026-08-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://kirollos-maher.github.io/Dorak-Landing-page/register.html</loc>
     <lastmod>2026-08-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://kirollos-maher.github.io/Dorak-Landing-page/dashboard.html</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
   <url>
     <loc>https://kirollos-maher.github.io/Dorak-Landing-page/reset-password.html</loc>
     <lastmod>2026-08-15</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
-    <loc>https://kirollos-maher.github.io/Dorak-Landing-page/dashboard.html</loc>
-    <lastmod>2026-08-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.3</priority>
   </url>
 </urlset>
