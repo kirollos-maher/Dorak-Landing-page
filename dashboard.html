@@ -366,7 +366,7 @@
       console.error('Trial provisioning error:', e);
       btn.disabled = false;
       btnText.textContent = 'ابدأ تجربتك المجانية دلوقتي';
-      alert('حصل خطأ أثناء تجهيز التجربة المجانية، حاول تاني.');
+      alert('حصل خطأ أثناء تجهيز التجربة المجانية:\n' + (e.message || e.error_description || JSON.stringify(e)));
     }
   }
 </script>
