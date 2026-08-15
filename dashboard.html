@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DORAK — لوحة التحكم</title>
+  
+  <title>تسجيل الدخول - نظام إدارة بلايستيشن DORAK</title>
+  <meta name="description" content="سجل الدخول إلى نظام DORAK لإدارة صالات البلايستيشن. تابع أجهزتك، إدارة الوقت، وتحليل الأرباح من مكان واحد.">
+  <meta name="robots" content="noindex, follow">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -23,19 +29,18 @@
       background-image: radial-gradient(600px 400px at 80% 20%, rgba(255, 138, 30, 0.10), transparent 60%);
       padding: 20px;
     }
-    .dashboard-card {
+    .login-card {
       background: #14181d;
       border: 1px solid #262c33;
       border-radius: 24px;
       padding: 48px 40px;
-      max-width: 500px;
+      max-width: 440px;
       width: 100%;
       box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
-      text-align: center;
       position: relative;
       overflow: hidden;
     }
-    .dashboard-card::before {
+    .login-card::before {
       content: '';
       position: absolute;
       top: -50%; left: -50%;
@@ -43,10 +48,20 @@
       background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
       pointer-events: none;
     }
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      color: #8b95a1;
+      font-size: 28px;
+      text-decoration: none;
+      z-index: 10;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: #eef1f4; }
     .brand {
       display: flex;
       align-items: center;
-      justify-content: center;
       gap: 10px;
       font-weight: 800;
       font-size: 22px;
@@ -65,158 +80,208 @@
       font-family: 'JetBrains Mono', monospace;
       color: #ff8a1e;
     }
-    .avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: #262c33;
+    .login-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+    .login-card .sub { color: #8b95a1; font-size: 14px; margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #8b95a1;
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      background: #0c0f12;
+      border: 1px solid #262c33;
+      border-radius: 10px;
+      padding: 14px 16px;
+      color: #eef1f4;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: #ff8a1e;
+      box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.15);
+    }
+    .password-strength {
       display: flex;
       align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 32px;
-      color: #ff8a1e;
-      border: 2px solid #ff8a1e;
+      gap: 10px;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #565f6a;
+    }
+    .password-strength .bar {
+      flex: 1;
+      height: 4px;
+      background: #262c33;
+      border-radius: 4px;
       overflow: hidden;
     }
-    .avatar img {
-      width: 100%;
+    .password-strength .bar .fill {
+      width: 60%;
       height: 100%;
-      object-fit: cover;
+      background: #ff8a1e;
+      border-radius: 4px;
     }
-    .dashboard-card h2 {
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 4px;
-    }
-    .dashboard-card .email {
-      color: #8b95a1;
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
-    .dashboard-card .badge {
-      display: inline-block;
-      background: rgba(45, 212, 191, 0.15);
-      color: #2dd4bf;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 16px;
-      border-radius: 20px;
-      margin-bottom: 28px;
-    }
-    .btn-logout {
-      width: 100%;
-      background: transparent;
-      border: 1px solid #ef4444;
-      border-radius: 10px;
-      padding: 14px;
-      font-weight: 700;
-      font-size: 15px;
-      color: #ef4444;
-      cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      font-family: inherit;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none;
-      margin-top: 10px;
-    }
-    .btn-logout:hover {
-      background: #ef4444;
-      color: #0c0f12;
-    }
-    .btn-home {
+    .btn-login {
       width: 100%;
       background: #ff8a1e;
       border: none;
       border-radius: 10px;
-      padding: 14px;
-      font-weight: 700;
-      font-size: 15px;
+      padding: 16px;
+      font-weight: 800;
+      font-size: 16px;
       color: #12100c;
       cursor: pointer;
-      transition: background 0.2s;
-      font-family: inherit;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 4px 18px rgba(255, 138, 30, 0.3);
+      margin-top: 6px;
+    }
+    .btn-login:hover { background: #f57c0a; box-shadow: 0 8px 28px rgba(255, 138, 30, 0.5); }
+    .btn-login:active { transform: scale(0.97); }
+    .login-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 18px;
+      font-size: 14px;
+    }
+    .login-footer a { color: #ff8a1e; font-weight: 700; text-decoration: none; }
+    .login-footer a:hover { text-decoration: underline; }
+    .divider {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      text-decoration: none;
+      gap: 16px;
+      margin: 26px 0 20px;
+      color: #565f6a;
+      font-size: 13px;
     }
-    .btn-home:hover {
-      background: #f57c0a;
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #262c33;
     }
-    .btn-trial {
+    .btn-google-wrapper { width: 100%; display: flex; justify-content: center; }
+    .btn-google-wrapper > div { width: 100% !important; max-width: 100% !important; }
+    .btn-google-custom {
       width: 100%;
       background: transparent;
-      border: 1px solid #22c55e;
+      border: 1px solid #262c33;
       border-radius: 10px;
       padding: 14px;
       font-weight: 700;
       font-size: 15px;
-      color: #22c55e;
+      color: #eef1f4;
       cursor: pointer;
-      transition: background 0.2s, color 0.2s;
-      font-family: inherit;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      text-decoration: none;
-      margin-bottom: 10px;
+      gap: 12px;
+      transition: background 0.2s, border-color 0.2s;
+      font-family: inherit;
     }
-    .btn-trial:hover {
-      background: #22c55e;
-      color: #0c0f12;
+    .btn-google-custom:hover { background: #1e242b; border-color: #3a424c; }
+    .btn-google-custom i { font-size: 20px; color: #fff; }
+    .legal {
+      margin-top: 28px;
+      font-size: 11.5px;
+      color: #565f6a;
+      text-align: center;
+      line-height: 1.6;
+      border-top: 1px solid #1e242b;
+      padding-top: 22px;
     }
+    .legal strong { color: #8b95a1; }
+    .legal .brand-tag { color: #ff8a1e; font-weight: 700; }
     .footer-note {
-      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
       font-size: 11px;
       color: #3a424c;
-      border-top: 1px solid #1e242b;
-      padding-top: 18px;
+      gap: 14px;
     }
     .footer-note a { color: #565f6a; text-decoration: none; }
     .footer-note a:hover { color: #8b95a1; }
+    #g_id_onload { display: none; }
+    .error-msg {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+      text-align: center;
+    }
     @media (max-width: 480px) {
-      .dashboard-card { padding: 32px 20px; }
+      .login-card { padding: 32px 20px; }
+      .brand { font-size: 18px; }
     }
   </style>
 </head>
 <body>
 
-<div class="dashboard-card" id="dashboardCard">
+<div class="login-card">
+  <a href="index.html" class="close-btn"><i class="fa-solid fa-xmark"></i></a>
+  
   <div class="brand">
     <span class="dot"></span>
     DORAK <span class="mark">✦</span>
   </div>
+  
+  <h2>تسجيل الدخول</h2>
+  <p class="sub">أدخل بيانات حسابك للدخول إلى لوحة تحكم دورك</p>
 
-  <div class="avatar" id="avatarContainer">
-    <i class="fa-regular fa-user"></i>
+  <form id="loginForm" onsubmit="return handleLogin(event)">
+    <div class="form-group">
+      <label for="email">البريد الإلكتروني</label>
+      <input type="email" id="email" placeholder="name@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="password">كلمة المرور</label>
+      <input type="password" id="password" placeholder="••••••••" required />
+      <div class="password-strength">
+        <span>نسبة كلمة المرور</span>
+        <div class="bar"><div class="fill"></div></div>
+      </div>
+    </div>
+    <div id="loginError" class="error-msg"></div>
+    <button type="submit" class="btn-login"><i class="fa-solid fa-arrow-right"></i> دخول</button>
+  </form>
+
+  <div class="login-footer">
+    <a href="register.html">إنشاء حساب جديد</a>
+    <a href="reset-password.html" style="color:#565f6a; font-weight:400;">نسيت كلمة المرور؟</a>
   </div>
 
-  <h2 id="userName">مرحباً بك!</h2>
-  <p class="email" id="userEmail">example@email.com</p>
-  <div class="badge">✅ تم تسجيل الدخول بنجاح</div>
+  <div class="divider">أو</div>
 
-  <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
-  
-  <button class="btn-trial" id="trialBtn" onclick="startFreeTrial()"><i class="fa-solid fa-rocket"></i> <span id="trialBtnText">ابدأ تجربتك المجانية دلوقتي</span></button>
+  <div id="googleBtnContainer" class="btn-google-wrapper" style="margin-bottom: 10px;"></div>
+  <button id="googleFallbackBtn" class="btn-google-custom" onclick="handleGoogleFallback()">
+    <i class="fa-brands fa-google"></i>
+    <span>تسجيل الدخول عبر Google</span>
+  </button>
+  <p id="googleStatus" style="font-size: 11px; color: #565f6a; margin-top: 6px; text-align: center;"></p>
 
-  <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
-
+  <div class="legal">
+    <strong>DORAK</strong> — نظام إدارة صالات البلايستيشن والجيمنج.<br />
+    <span class="brand-tag">دورك</span> مش تابع لأي شركة ألعاب خارجية.
+  </div>
   <div class="footer-note">
-    <span>© 2026 DORAK — نظام إدارة صالات البلايستيشن والجيمنج</span>
+    <span>© 2026 DORAK</span>
+    <span>نظام إدارة صالات البلايستيشن والجيمنج</span>
+    <a href="#">حذف البيانات</a>
   </div>
 </div>
 
 <script>
-  // ============================================================
-  //  Firebase (بيانات المستخدمين — نفس بيانات register.html)
-  // ============================================================
   const firebaseConfig = {
     apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
     authDomain: "dorakdb-0.firebaseapp.com",
@@ -226,149 +291,187 @@
     messagingSenderId: "543545007670",
     appId: "1:543545007670:web:78f6e765e72006d98b4297"
   };
+
   firebase.initializeApp(firebaseConfig);
-  const fdb = firebase.database();
+  const db = firebase.database();
 
-  // ============================================================
-  //  Supabase (نفس مشروع التطبيق ولوحة الأدمن)
-  // ============================================================
-  const SUPABASE_URL = 'https://hdrvqgicxxgfolozxgjp.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_dGNw7eTTempKBdFmAZRjYA_eaeEE2jj';
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
 
-  function logout() {
-    localStorage.removeItem('dorak_user');
-    window.location.href = 'login.html';
-  }
-
-  window.onload = function() {
-    const userData = localStorage.getItem('dorak_user');
-    if (!userData) {
-      window.location.href = 'login.html';
-      return;
-    }
-
-    try {
-      const user = JSON.parse(userData);
-      document.getElementById('userName').textContent = user.name || 'مستخدم';
-      document.getElementById('userEmail').textContent = user.email || '';
-
-      if (user.picture) {
-        const container = document.getElementById('avatarContainer');
-        container.innerHTML = `<img src="${user.picture}" alt="Profile" />`;
-      }
-    } catch (e) {
-      window.location.href = 'login.html';
-    }
-  };
-
-  // ============================================================
-  //  🚀 تفعيل التجربة المجانية (7 أيام) تلقائيًا
-  // ============================================================
-  function randomBizCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let out = 'TRY';
-    for (let i = 0; i < 5; i++) out += chars[Math.floor(Math.random() * chars.length)];
-    return out;
-  }
-
-  function randomActivationCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let out = '';
-    for (let i = 0; i < 8; i++) { out += chars[Math.floor(Math.random() * chars.length)]; if (i === 3) out += '-'; }
-    return out;
-  }
-
-  function randomPin() {
-    return String(Math.floor(1000 + Math.random() * 9000));
-  }
-
-  // يدور على المستخدم في Firebase بالإيميل، عشان نتأكد إنه ماخدش تجربة قبل كده
-  function findFirebaseUserByEmail(email) {
+  function getUsersFromDB() {
     return new Promise((resolve) => {
-      fdb.ref('users').orderByChild('email').equalTo(email).once('value')
-        .then((snap) => {
-          const data = snap.val();
-          if (!data) { resolve(null); return; }
-          const key = Object.keys(data)[0];
-          resolve({ key, ...data[key] });
-        })
-        .catch(() => resolve(null));
+      db.ref('users').once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const usersArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+          resolve(usersArray);
+        } else {
+          resolve([]);
+        }
+      }).catch(() => resolve([]));
     });
   }
 
-  // ينشئ نشاط جديد بكود فريد (بيحاول أكتر من مرة لو حصل تعارض في الكود)
-  async function createTrialBusiness(name) {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = randomBizCode();
-      const { data, error } = await supabaseClient.from('businesses').insert({
-        code,
-        name: name ? `${name} — تجربة مجانية` : 'تجربة مجانية',
-        owner_pin: '0000',
-        total_stations: 4
-      }).select().single();
-      if (!error) return data;
-      if (error.code !== '23505') throw error; // غير خطأ تكرار الكود، وقف
-    }
-    throw new Error('تعذر إنشاء كود نشاط فريد');
+  function saveUserToDB(userData) {
+    const newUserRef = db.ref('users').push();
+    return newUserRef.set({
+      name: userData.name,
+      email: userData.email,
+      password: userData.password || null,
+      picture: userData.picture || null,
+      provider: userData.provider || 'email',
+      createdAt: new Date().toISOString()
+    });
   }
 
-  // ينشئ كود تفعيل تجريبي (7 أيام) لنشاط معين
-  async function createTrialActivationCode(businessId) {
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = randomActivationCode();
-      const { data, error } = await supabaseClient.from('activation_codes').insert({
-        business_id: businessId,
-        code,
-        is_trial: true
-      }).select().single();
-      if (!error) return data;
-      if (error.code !== '23505') throw error;
-    }
-    throw new Error('تعذر إنشاء كود تفعيل فريد');
+  async function findUserByEmail(email) {
+    const users = await getUsersFromDB();
+    return users.find(u => u.email === email) || null;
   }
 
-  async function startFreeTrial() {
-    const btn = document.getElementById('trialBtn');
-    const btnText = document.getElementById('trialBtnText');
-    btn.disabled = true;
-    btnText.textContent = 'جاري التجهيز...';
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const errorEl = document.getElementById('loginError');
+    errorEl.style.display = 'none';
 
-    try {
-      const userData = localStorage.getItem('dorak_user');
-      const user = userData ? JSON.parse(userData) : {};
+    if (!email || !password) {
+      errorEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور.';
+      errorEl.style.display = 'block';
+      return false;
+    }
 
-      let fbUser = user.email ? await findFirebaseUserByEmail(user.email) : null;
-      let bizCode = fbUser && fbUser.trialBusinessCode ? fbUser.trialBusinessCode : null;
-      let bizId = null;
+    let user = await findUserByEmail(email);
 
-      if (bizCode) {
-        // عنده نشاط تجربة قبل كده — نجيب الـ id بتاعه ونولّد كود تفعيل جديد له
-        const { data: biz } = await supabaseClient.from('businesses').select('id').eq('code', bizCode).maybeSingle();
-        if (biz) bizId = biz.id;
-      }
+    if (!user) {
+      const oldUsers = JSON.parse(localStorage.getItem('dorak_users') || '[]');
+      const oldUser = oldUsers.find(u => u.email === email && u.password === password);
 
-      if (!bizId) {
-        const biz = await createTrialBusiness(user.name);
-        bizId = biz.id;
-        bizCode = biz.code;
-
-        // نسجّل كود النشاط على حساب المستخدم في Firebase عشان ميعملش تجربة تانية
-        if (fbUser) {
-          await fdb.ref('users/' + fbUser.key).update({ trialBusinessCode: bizCode });
+      if (oldUser) {
+        try {
+          await saveUserToDB({
+            name: oldUser.name,
+            email: oldUser.email,
+            password: oldUser.password,
+            picture: oldUser.picture || null,
+            provider: 'migrated_from_local'
+          });
+          const users = await getUsersFromDB();
+          user = users.find(u => u.email === email);
+        } catch (err) {
+          errorEl.textContent = '⚠️ حدث خطأ أثناء ترحيل حسابك القديم. حاول مرة أخرى.';
+          errorEl.style.display = 'block';
+          return false;
         }
       }
+    }
 
-      const actCode = await createTrialActivationCode(bizId);
+    if (!user || user.password !== password) {
+      errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      errorEl.style.display = 'block';
+      return false;
+    }
 
-      window.location.href = `https://dorak-six.vercel.app/?biz=${encodeURIComponent(bizCode)}&code=${encodeURIComponent(actCode.code)}`;
-    } catch (e) {
-      console.error('Trial provisioning error:', e);
-      btn.disabled = false;
-      btnText.textContent = 'ابدأ تجربتك المجانية دلوقتي';
-      alert('حصل خطأ أثناء تجهيز التجربة المجانية:\n' + (e.message || e.error_description || JSON.stringify(e)));
+    const session = {
+      name: user.name,
+      email: user.email,
+      picture: user.picture || null
+    };
+    localStorage.setItem('dorak_user', JSON.stringify(session));
+    window.location.href = 'dashboard.html';
+    return false;
+  }
+
+  async function handleGoogleLogin(credential) {
+    try {
+      const payload = JSON.parse(atob(credential.split('.')[1]));
+      const email = payload.email || '';
+      const name = payload.name || email.split('@')[0] || 'مستخدم Google';
+      const picture = payload.picture || null;
+
+      let user = await findUserByEmail(email);
+
+      if (!user) {
+        await saveUserToDB({
+          name: name,
+          email: email,
+          password: null,
+          picture: picture,
+          provider: 'google'
+        });
+      }
+
+      const session = { name, email, picture };
+      localStorage.setItem('dorak_user', JSON.stringify(session));
+      window.location.href = 'dashboard.html';
+
+    } catch (err) {
+      console.error('❌ خطأ في تسجيل الدخول بجوجل:', err);
+      alert('حدث خطأ أثناء تسجيل الدخول بجوجل. حاول مرة أخرى.');
     }
   }
+
+  function handleGoogleFallback() {
+    document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
+    setTimeout(async () => {
+      const fakeEmail = 'user_google_test@gmail.com';
+      const fakeName = 'مستخدم Google (تجريبي)';
+
+      try {
+        let user = await findUserByEmail(fakeEmail);
+        if (!user) {
+          await saveUserToDB({
+            name: fakeName,
+            email: fakeEmail,
+            password: null,
+            picture: null,
+            provider: 'google_simulator'
+          });
+        }
+      } catch (e) { console.warn('محاكي: فشل في الكتابة', e); }
+
+      const session = { name: fakeName, email: fakeEmail, picture: null };
+      localStorage.setItem('dorak_user', JSON.stringify(session));
+      document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
+      window.location.href = 'dashboard.html';
+    }, 1200);
+  }
+
+  window.onload = function() {
+    if (localStorage.getItem('dorak_user')) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    const container = document.getElementById('googleBtnContainer');
+    const fallbackBtn = document.getElementById('googleFallbackBtn');
+    const statusEl = document.getElementById('googleStatus');
+
+    if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID.length > 10) {
+      fallbackBtn.style.display = 'none';
+      statusEl.textContent = '🔐 تسجيل آمن عبر Google';
+
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: (response) => {
+          handleGoogleLogin(response.credential);
+        },
+        cancel_on_tap_outside: false,
+      });
+
+      google.accounts.id.renderButton(container, {
+        theme: 'outline',
+        size: 'large',
+        width: 400,
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'left'
+      });
+    } else {
+      fallbackBtn.style.display = 'flex';
+      statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود';
+    }
+  };
 </script>
 
 </body>
