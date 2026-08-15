@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -102,7 +102,7 @@
       font-weight: 700;
       padding: 4px 16px;
       border-radius: 20px;
-      margin-bottom: 12px;
+      margin-bottom: 28px;
     }
     .btn-logout {
       width: 100%;
@@ -152,7 +152,7 @@
     .btn-trial {
       width: 100%;
       background: transparent;
-      border: 2px solid #22c55e;
+      border: 1px solid #22c55e;
       border-radius: 10px;
       padding: 14px;
       font-weight: 700;
@@ -172,38 +172,6 @@
       background: #22c55e;
       color: #0c0f12;
     }
-    .btn-trial:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .activation-info {
-      background: #0c0f12;
-      border: 1px solid #262c33;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px 0;
-      text-align: right;
-    }
-    .activation-info .code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
-      color: #ff8a1e;
-      letter-spacing: 1px;
-      background: #14181d;
-      padding: 6px 12px;
-      border-radius: 6px;
-      display: inline-block;
-    }
-    .activation-info .status {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .status-active { background: rgba(45, 212, 191, 0.15); color: #2dd4bf; }
-    .status-expired { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
-    .status-pending { background: rgba(255, 138, 30, 0.15); color: #ff8a1e; }
     .footer-note {
       margin-top: 24px;
       font-size: 11px;
@@ -213,25 +181,6 @@
     }
     .footer-note a { color: #565f6a; text-decoration: none; }
     .footer-note a:hover { color: #8b95a1; }
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 16px;
-      right: 16px;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 13.5px;
-      text-align: center;
-      z-index: 999;
-      display: none;
-      color: #fff;
-    }
-    .toast.success { background: #16825a; }
-    .toast.error { background: #b3261e; }
-    .toast.warning { background: #b36b1e; }
     @media (max-width: 480px) {
       .dashboard-card { padding: 32px 20px; }
     }
@@ -253,28 +202,9 @@
   <p class="email" id="userEmail">example@email.com</p>
   <div class="badge">✅ تم تسجيل الدخول بنجاح</div>
 
-  <div id="activationSection" style="display:none;">
-    <div class="activation-info" id="activationInfo">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-        <span>🔑 كود التفعيل:</span>
-        <span class="code" id="activationCodeDisplay">—</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;">
-        <span>📅 الحالة:</span>
-        <span class="status" id="activationStatusDisplay">—</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:12px;color:var(--text-dim);">
-        <span>⏳ يتبقى:</span>
-        <span id="activationRemainingDisplay">—</span>
-      </div>
-    </div>
-  </div>
-
-  <button class="btn-trial" id="trialBtn" onclick="requestTrial()">
-    <i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)
-  </button>
-
   <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
+  
+  <button class="btn-trial" id="trialBtn" onclick="startFreeTrial()"><i class="fa-solid fa-rocket"></i> <span id="trialBtnText">ابدأ تجربتك المجانية دلوقتي</span></button>
 
   <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
 
@@ -283,193 +213,32 @@
   </div>
 </div>
 
-<div id="toast" class="toast"></div>
-
 <script>
+  // ============================================================
+  //  Firebase (بيانات المستخدمين — نفس بيانات register.html)
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
+    authDomain: "dorakdb-0.firebaseapp.com",
+    databaseURL: "https://dorakdb-0-default-rtdb.firebaseio.com",
+    projectId: "dorakdb-0",
+    storageBucket: "dorakdb-0.firebasestorage.app",
+    messagingSenderId: "543545007670",
+    appId: "1:543545007670:web:78f6e765e72006d98b4297"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const fdb = firebase.database();
+
+  // ============================================================
+  //  Supabase (نفس مشروع التطبيق ولوحة الأدمن)
+  // ============================================================
   const SUPABASE_URL = 'https://hdrvqgicxxgfolozxgjp.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_dGNw7eTTempKBdFmAZRjYA_eaeEE2jj';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  function showToast(msg, type = 'success') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast ' + type;
-    el.style.display = 'block';
-    clearTimeout(el._t);
-    el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
-  }
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   function logout() {
     localStorage.removeItem('dorak_user');
     window.location.href = 'login.html';
-  }
-
-  function generateActivationCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = 'DORAK-';
-    for (let i = 0; i < 12; i++) {
-      if (i > 0 && i % 4 === 0) code += '-';
-      code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
-  }
-
-  async function requestTrial() {
-    const btn = document.getElementById('trialBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الطلب...';
-
-    try {
-      const userData = localStorage.getItem('dorak_user');
-      if (!userData) {
-        showToast('❌ يجب تسجيل الدخول أولاً.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-        return;
-      }
-
-      const user = JSON.parse(userData);
-      const userEmail = user.email;
-
-      const { data: existing, error: checkError } = await supabase
-        .from('activation_requests')
-        .select('*')
-        .eq('user_email', userEmail)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (checkError) {
-        showToast('⚠️ خطأ في التحقق: ' + checkError.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-        return;
-      }
-
-      if (existing && existing.length > 0) {
-        const last = existing[0];
-        const now = new Date();
-        const expiry = new Date(last.expiry_date);
-
-        if (last.status === 'active' && expiry > now) {
-          showToast('✅ لديك اشتراك مفعّل بالفعل!', 'warning');
-          loadActivationStatus();
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-          return;
-        }
-
-        if (last.status === 'pending') {
-          showToast('⏳ طلبك قيد المراجعة، انتظر قليلاً.', 'warning');
-          btn.disabled = false;
-          btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-          return;
-        }
-
-        if (last.status === 'expired' || expiry <= now) {
-          await supabase
-            .from('activation_requests')
-            .update({ status: 'expired' })
-            .eq('id', last.id);
-        }
-      }
-
-      const newCode = generateActivationCode();
-      const expiryDate = new Date();
-      expiryDate.setDate(expiryDate.getDate() + 7);
-
-      const { data: insertData, error: insertError } = await supabase
-        .from('activation_requests')
-        .insert({
-          user_email: userEmail,
-          user_name: user.name || 'مستخدم',
-          activation_code: newCode,
-          status: 'pending',
-          expiry_date: expiryDate.toISOString(),
-          device_id: null
-        })
-        .select();
-
-      if (insertError) {
-        showToast('❌ فشل إنشاء الكود: ' + insertError.message, 'error');
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-        return;
-      }
-
-      showToast('✅ تم إنشاء كود التفعيل! يرجى الانتظار حتى يتم تفعيله.', 'success');
-      loadActivationStatus();
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-
-    } catch (e) {
-      showToast('❌ حدث خطأ: ' + e.message, 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
-    }
-  }
-
-  async function loadActivationStatus() {
-    try {
-      const userData = localStorage.getItem('dorak_user');
-      if (!userData) return;
-
-      const user = JSON.parse(userData);
-      const userEmail = user.email;
-
-      const { data, error } = await supabase
-        .from('activation_requests')
-        .select('*')
-        .eq('user_email', userEmail)
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) {
-        console.error('خطأ في تحميل حالة التفعيل:', error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        const req = data[0];
-        const section = document.getElementById('activationSection');
-        section.style.display = 'block';
-
-        document.getElementById('activationCodeDisplay').textContent = req.activation_code;
-
-        const expiry = new Date(req.expiry_date);
-        const now = new Date();
-
-        let statusText = '';
-        let statusClass = '';
-        let remainingText = '';
-
-        if (req.status === 'pending') {
-          statusText = '⏳ في الانتظار';
-          statusClass = 'status-pending';
-          remainingText = 'بانتظار موافقة الأدمن';
-        } else if (req.status === 'active' && expiry > now) {
-          statusText = '✅ نشط';
-          statusClass = 'status-active';
-          const diff = expiry - now;
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          remainingText = `${days} يوم و ${hours} ساعة`;
-        } else {
-          statusText = '❌ منتهي';
-          statusClass = 'status-expired';
-          remainingText = 'انتهت صلاحية الكود';
-        }
-
-        document.getElementById('activationStatusDisplay').textContent = statusText;
-        document.getElementById('activationStatusDisplay').className = 'status ' + statusClass;
-        document.getElementById('activationRemainingDisplay').textContent = remainingText;
-
-      } else {
-        document.getElementById('activationSection').style.display = 'none';
-      }
-
-    } catch (e) {
-      console.error('خطأ:', e);
-    }
   }
 
   window.onload = function() {
@@ -488,13 +257,118 @@
         const container = document.getElementById('avatarContainer');
         container.innerHTML = `<img src="${user.picture}" alt="Profile" />`;
       }
-
-      loadActivationStatus();
-
     } catch (e) {
       window.location.href = 'login.html';
     }
   };
+
+  // ============================================================
+  //  🚀 تفعيل التجربة المجانية (7 أيام) تلقائيًا
+  // ============================================================
+  function randomBizCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = 'TRY';
+    for (let i = 0; i < 5; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function randomActivationCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    for (let i = 0; i < 8; i++) { out += chars[Math.floor(Math.random() * chars.length)]; if (i === 3) out += '-'; }
+    return out;
+  }
+
+  function randomPin() {
+    return String(Math.floor(1000 + Math.random() * 9000));
+  }
+
+  // يدور على المستخدم في Firebase بالإيميل، عشان نتأكد إنه ماخدش تجربة قبل كده
+  function findFirebaseUserByEmail(email) {
+    return new Promise((resolve) => {
+      fdb.ref('users').orderByChild('email').equalTo(email).once('value')
+        .then((snap) => {
+          const data = snap.val();
+          if (!data) { resolve(null); return; }
+          const key = Object.keys(data)[0];
+          resolve({ key, ...data[key] });
+        })
+        .catch(() => resolve(null));
+    });
+  }
+
+  // ينشئ نشاط جديد بكود فريد (بيحاول أكتر من مرة لو حصل تعارض في الكود)
+  async function createTrialBusiness(name) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomBizCode();
+      const { data, error } = await supabaseClient.from('businesses').insert({
+        code,
+        name: name ? `${name} — تجربة مجانية` : 'تجربة مجانية',
+        owner_pin: '0000',
+        total_stations: 4
+      }).select().single();
+      if (!error) return data;
+      if (error.code !== '23505') throw error; // غير خطأ تكرار الكود، وقف
+    }
+    throw new Error('تعذر إنشاء كود نشاط فريد');
+  }
+
+  // ينشئ كود تفعيل تجريبي (7 أيام) لنشاط معين
+  async function createTrialActivationCode(businessId) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomActivationCode();
+      const { data, error } = await supabaseClient.from('activation_codes').insert({
+        business_id: businessId,
+        code,
+        is_trial: true
+      }).select().single();
+      if (!error) return data;
+      if (error.code !== '23505') throw error;
+    }
+    throw new Error('تعذر إنشاء كود تفعيل فريد');
+  }
+
+  async function startFreeTrial() {
+    const btn = document.getElementById('trialBtn');
+    const btnText = document.getElementById('trialBtnText');
+    btn.disabled = true;
+    btnText.textContent = 'جاري التجهيز...';
+
+    try {
+      const userData = localStorage.getItem('dorak_user');
+      const user = userData ? JSON.parse(userData) : {};
+
+      let fbUser = user.email ? await findFirebaseUserByEmail(user.email) : null;
+      let bizCode = fbUser && fbUser.trialBusinessCode ? fbUser.trialBusinessCode : null;
+      let bizId = null;
+
+      if (bizCode) {
+        // عنده نشاط تجربة قبل كده — نجيب الـ id بتاعه ونولّد كود تفعيل جديد له
+        const { data: biz } = await supabaseClient.from('businesses').select('id').eq('code', bizCode).maybeSingle();
+        if (biz) bizId = biz.id;
+      }
+
+      if (!bizId) {
+        const biz = await createTrialBusiness(user.name);
+        bizId = biz.id;
+        bizCode = biz.code;
+
+        // نسجّل كود النشاط على حساب المستخدم في Firebase عشان ميعملش تجربة تانية
+        if (fbUser) {
+          await fdb.ref('users/' + fbUser.key).update({ trialBusinessCode: bizCode });
+        }
+      }
+
+      const actCode = await createTrialActivationCode(bizId);
+
+      window.location.href = `https://dorak-six.vercel.app/?biz=${encodeURIComponent(bizCode)}&code=${encodeURIComponent(actCode.code)}`;
+    } catch (e) {
+      console.error('Trial provisioning error:', e);
+      btn.disabled = false;
+      btnText.textContent = 'ابدأ تجربتك المجانية دلوقتي';
+      alert('حصل خطأ أثناء تجهيز التجربة المجانية:\n' + (e.message || e.error_description || JSON.stringify(e)));
+    }
+  }
 </script>
 
 </body>
