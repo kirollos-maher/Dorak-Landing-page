@@ -3,18 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>تسجيل الدخول - نظام إدارة بلايستيشن DORAK</title>
-  <meta name="description" content="سجل الدخول إلى نظام DORAK لإدارة صالات البلايستيشن. تابع أجهزتك، إدارة الوقت، وتحليل الأرباح من مكان واحد.">
-  <meta name="robots" content="noindex, follow">
-  
+  <title>DORAK — لوحة التحكم</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,18 +23,19 @@
       background-image: radial-gradient(600px 400px at 80% 20%, rgba(255, 138, 30, 0.10), transparent 60%);
       padding: 20px;
     }
-    .login-card {
+    .dashboard-card {
       background: #14181d;
       border: 1px solid #262c33;
       border-radius: 24px;
       padding: 48px 40px;
-      max-width: 440px;
+      max-width: 500px;
       width: 100%;
       box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+      text-align: center;
       position: relative;
       overflow: hidden;
     }
-    .login-card::before {
+    .dashboard-card::before {
       content: '';
       position: absolute;
       top: -50%; left: -50%;
@@ -48,20 +43,10 @@
       background: radial-gradient(circle at 70% 20%, rgba(255, 138, 30, 0.06), transparent 50%);
       pointer-events: none;
     }
-    .close-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      color: #8b95a1;
-      font-size: 28px;
-      text-decoration: none;
-      z-index: 10;
-      transition: color 0.2s;
-    }
-    .close-btn:hover { color: #eef1f4; }
     .brand {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
       font-weight: 800;
       font-size: 22px;
@@ -80,396 +65,434 @@
       font-family: 'JetBrains Mono', monospace;
       color: #ff8a1e;
     }
-    .login-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
-    .login-card .sub { color: #8b95a1; font-size: 14px; margin-bottom: 28px; }
-    .form-group { margin-bottom: 18px; }
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 700;
-      color: #8b95a1;
-      margin-bottom: 6px;
-    }
-    .form-group input {
-      width: 100%;
-      background: #0c0f12;
-      border: 1px solid #262c33;
-      border-radius: 10px;
-      padding: 14px 16px;
-      color: #eef1f4;
-      font-size: 15px;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-    .form-group input:focus {
-      outline: none;
-      border-color: #ff8a1e;
-      box-shadow: 0 0 0 3px rgba(255, 138, 30, 0.15);
-    }
-    .password-strength {
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #262c33;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-top: 6px;
-      font-size: 12px;
-      color: #565f6a;
-    }
-    .password-strength .bar {
-      flex: 1;
-      height: 4px;
-      background: #262c33;
-      border-radius: 4px;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+      color: #ff8a1e;
+      border: 2px solid #ff8a1e;
       overflow: hidden;
     }
-    .password-strength .bar .fill {
-      width: 60%;
-      height: 100%;
-      background: #ff8a1e;
-      border-radius: 4px;
-    }
-    .btn-login {
+    .avatar img {
       width: 100%;
-      background: #ff8a1e;
-      border: none;
-      border-radius: 10px;
-      padding: 16px;
+      height: 100%;
+      object-fit: cover;
+    }
+    .dashboard-card h2 {
+      font-size: 22px;
       font-weight: 800;
-      font-size: 16px;
-      color: #12100c;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 4px 18px rgba(255, 138, 30, 0.3);
-      margin-top: 6px;
+      margin-bottom: 4px;
     }
-    .btn-login:hover { background: #f57c0a; box-shadow: 0 8px 28px rgba(255, 138, 30, 0.5); }
-    .btn-login:active { transform: scale(0.97); }
-    .login-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 18px;
+    .dashboard-card .email {
+      color: #8b95a1;
       font-size: 14px;
+      margin-bottom: 24px;
     }
-    .login-footer a { color: #ff8a1e; font-weight: 700; text-decoration: none; }
-    .login-footer a:hover { text-decoration: underline; }
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin: 26px 0 20px;
-      color: #565f6a;
-      font-size: 13px;
+    .dashboard-card .badge {
+      display: inline-block;
+      background: rgba(45, 212, 191, 0.15);
+      color: #2dd4bf;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin-bottom: 12px;
     }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: #262c33;
-    }
-    .btn-google-wrapper { width: 100%; display: flex; justify-content: center; }
-    .btn-google-wrapper > div { width: 100% !important; max-width: 100% !important; }
-    .btn-google-custom {
+    .btn-logout {
       width: 100%;
       background: transparent;
-      border: 1px solid #262c33;
+      border: 1px solid #ef4444;
       border-radius: 10px;
       padding: 14px;
       font-weight: 700;
       font-size: 15px;
-      color: #eef1f4;
+      color: #ef4444;
       cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-family: inherit;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 12px;
-      transition: background 0.2s, border-color 0.2s;
-      font-family: inherit;
-    }
-    .btn-google-custom:hover { background: #1e242b; border-color: #3a424c; }
-    .btn-google-custom i { font-size: 20px; color: #fff; }
-    .legal {
-      margin-top: 28px;
-      font-size: 11.5px;
-      color: #565f6a;
-      text-align: center;
-      line-height: 1.6;
-      border-top: 1px solid #1e242b;
-      padding-top: 22px;
-    }
-    .legal strong { color: #8b95a1; }
-    .legal .brand-tag { color: #ff8a1e; font-weight: 700; }
-    .footer-note {
-      display: flex;
-      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
       margin-top: 10px;
+    }
+    .btn-logout:hover {
+      background: #ef4444;
+      color: #0c0f12;
+    }
+    .btn-home {
+      width: 100%;
+      background: #ff8a1e;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #12100c;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      text-decoration: none;
+    }
+    .btn-home:hover {
+      background: #f57c0a;
+    }
+    .btn-trial {
+      width: 100%;
+      background: transparent;
+      border: 2px solid #22c55e;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #22c55e;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      margin-bottom: 10px;
+    }
+    .btn-trial:hover {
+      background: #22c55e;
+      color: #0c0f12;
+    }
+    .btn-trial:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .activation-info {
+      background: #0c0f12;
+      border: 1px solid #262c33;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px 0;
+      text-align: right;
+    }
+    .activation-info .code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      color: #ff8a1e;
+      letter-spacing: 1px;
+      background: #14181d;
+      padding: 6px 12px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .activation-info .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-active { background: rgba(45, 212, 191, 0.15); color: #2dd4bf; }
+    .status-expired { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .status-pending { background: rgba(255, 138, 30, 0.15); color: #ff8a1e; }
+    .footer-note {
+      margin-top: 24px;
       font-size: 11px;
       color: #3a424c;
-      gap: 14px;
+      border-top: 1px solid #1e242b;
+      padding-top: 18px;
     }
     .footer-note a { color: #565f6a; text-decoration: none; }
     .footer-note a:hover { color: #8b95a1; }
-    #g_id_onload { display: none; }
-    .error-msg {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid #ef4444;
-      color: #ef4444;
-      padding: 10px 14px;
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 14px 18px;
       border-radius: 8px;
-      font-size: 13px;
-      margin-top: 12px;
-      display: none;
+      font-weight: 700;
+      font-size: 13.5px;
       text-align: center;
+      z-index: 999;
+      display: none;
+      color: #fff;
     }
+    .toast.success { background: #16825a; }
+    .toast.error { background: #b3261e; }
+    .toast.warning { background: #b36b1e; }
     @media (max-width: 480px) {
-      .login-card { padding: 32px 20px; }
-      .brand { font-size: 18px; }
+      .dashboard-card { padding: 32px 20px; }
     }
   </style>
 </head>
 <body>
 
-<div class="login-card">
-  <a href="index.html" class="close-btn"><i class="fa-solid fa-xmark"></i></a>
-  
+<div class="dashboard-card" id="dashboardCard">
   <div class="brand">
     <span class="dot"></span>
     DORAK <span class="mark">✦</span>
   </div>
-  
-  <h2>تسجيل الدخول</h2>
-  <p class="sub">أدخل بيانات حسابك للدخول إلى لوحة تحكم دورك</p>
 
-  <form id="loginForm" onsubmit="return handleLogin(event)">
-    <div class="form-group">
-      <label for="email">البريد الإلكتروني</label>
-      <input type="email" id="email" placeholder="name@example.com" required />
-    </div>
-    <div class="form-group">
-      <label for="password">كلمة المرور</label>
-      <input type="password" id="password" placeholder="••••••••" required />
-      <div class="password-strength">
-        <span>نسبة كلمة المرور</span>
-        <div class="bar"><div class="fill"></div></div>
+  <div class="avatar" id="avatarContainer">
+    <i class="fa-regular fa-user"></i>
+  </div>
+
+  <h2 id="userName">مرحباً بك!</h2>
+  <p class="email" id="userEmail">example@email.com</p>
+  <div class="badge">✅ تم تسجيل الدخول بنجاح</div>
+
+  <div id="activationSection" style="display:none;">
+    <div class="activation-info" id="activationInfo">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+        <span>🔑 كود التفعيل:</span>
+        <span class="code" id="activationCodeDisplay">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;">
+        <span>📅 الحالة:</span>
+        <span class="status" id="activationStatusDisplay">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:4px;font-size:12px;color:var(--text-dim);">
+        <span>⏳ يتبقى:</span>
+        <span id="activationRemainingDisplay">—</span>
       </div>
     </div>
-    <div id="loginError" class="error-msg"></div>
-    <button type="submit" class="btn-login"><i class="fa-solid fa-arrow-right"></i> دخول</button>
-  </form>
-
-  <div class="login-footer">
-    <a href="register.html">إنشاء حساب جديد</a>
-    <a href="reset-password.html" style="color:#565f6a; font-weight:400;">نسيت كلمة المرور؟</a>
   </div>
 
-  <div class="divider">أو</div>
-
-  <div id="googleBtnContainer" class="btn-google-wrapper" style="margin-bottom: 10px;"></div>
-  <button id="googleFallbackBtn" class="btn-google-custom" onclick="handleGoogleFallback()">
-    <i class="fa-brands fa-google"></i>
-    <span>تسجيل الدخول عبر Google</span>
+  <button class="btn-trial" id="trialBtn" onclick="requestTrial()">
+    <i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)
   </button>
-  <p id="googleStatus" style="font-size: 11px; color: #565f6a; margin-top: 6px; text-align: center;"></p>
 
-  <div class="legal">
-    <strong>DORAK</strong> — نظام إدارة صالات البلايستيشن والجيمنج.<br />
-    <span class="brand-tag">دورك</span> مش تابع لأي شركة ألعاب خارجية.
-  </div>
+  <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
+
+  <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
+
   <div class="footer-note">
-    <span>© 2026 DORAK</span>
-    <span>نظام إدارة صالات البلايستيشن والجيمنج</span>
-    <a href="#">حذف البيانات</a>
+    <span>© 2026 DORAK — نظام إدارة صالات البلايستيشن والجيمنج</span>
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
-    authDomain: "dorakdb-0.firebaseapp.com",
-    databaseURL: "https://dorakdb-0-default-rtdb.firebaseio.com",
-    projectId: "dorakdb-0",
-    storageBucket: "dorakdb-0.firebasestorage.app",
-    messagingSenderId: "543545007670",
-    appId: "1:543545007670:web:78f6e765e72006d98b4297"
-  };
+  const SUPABASE_URL = 'https://hdrvqgicxxgfolozxgjp.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_dGNw7eTTempKBdFmAZRjYA_eaeEE2jj';
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
-  const GOOGLE_CLIENT_ID = '174155373036-pu72hfnfd5e8q7j2fiq2v5pevscsth1t.apps.googleusercontent.com';
-
-  function getUsersFromDB() {
-    return new Promise((resolve) => {
-      db.ref('users').once('value').then((snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          const usersArray = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-          resolve(usersArray);
-        } else {
-          resolve([]);
-        }
-      }).catch(() => resolve([]));
-    });
+  function showToast(msg, type = 'success') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast ' + type;
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = 'none'; }, 3000);
   }
 
-  function saveUserToDB(userData) {
-    const newUserRef = db.ref('users').push();
-    return newUserRef.set({
-      name: userData.name,
-      email: userData.email,
-      password: userData.password || null,
-      picture: userData.picture || null,
-      provider: userData.provider || 'email',
-      createdAt: new Date().toISOString()
-    });
+  function logout() {
+    localStorage.removeItem('dorak_user');
+    window.location.href = 'login.html';
   }
 
-  async function findUserByEmail(email) {
-    const users = await getUsersFromDB();
-    return users.find(u => u.email === email) || null;
-  }
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value.trim();
-    const errorEl = document.getElementById('loginError');
-    errorEl.style.display = 'none';
-
-    if (!email || !password) {
-      errorEl.textContent = 'يرجى إدخال البريد الإلكتروني وكلمة المرور.';
-      errorEl.style.display = 'block';
-      return false;
+  function generateActivationCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'DORAK-';
+    for (let i = 0; i < 12; i++) {
+      if (i > 0 && i % 4 === 0) code += '-';
+      code += chars[Math.floor(Math.random() * chars.length)];
     }
-
-    let user = await findUserByEmail(email);
-
-    if (!user) {
-      const oldUsers = JSON.parse(localStorage.getItem('dorak_users') || '[]');
-      const oldUser = oldUsers.find(u => u.email === email && u.password === password);
-
-      if (oldUser) {
-        try {
-          await saveUserToDB({
-            name: oldUser.name,
-            email: oldUser.email,
-            password: oldUser.password,
-            picture: oldUser.picture || null,
-            provider: 'migrated_from_local'
-          });
-          const users = await getUsersFromDB();
-          user = users.find(u => u.email === email);
-        } catch (err) {
-          errorEl.textContent = '⚠️ حدث خطأ أثناء ترحيل حسابك القديم. حاول مرة أخرى.';
-          errorEl.style.display = 'block';
-          return false;
-        }
-      }
-    }
-
-    if (!user || user.password !== password) {
-      errorEl.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
-      errorEl.style.display = 'block';
-      return false;
-    }
-
-    const session = {
-      name: user.name,
-      email: user.email,
-      picture: user.picture || null
-    };
-    localStorage.setItem('dorak_user', JSON.stringify(session));
-    window.location.href = 'dashboard.html';
-    return false;
+    return code;
   }
 
-  async function handleGoogleLogin(credential) {
+  async function requestTrial() {
+    const btn = document.getElementById('trialBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الطلب...';
+
     try {
-      const payload = JSON.parse(atob(credential.split('.')[1]));
-      const email = payload.email || '';
-      const name = payload.name || email.split('@')[0] || 'مستخدم Google';
-      const picture = payload.picture || null;
-
-      let user = await findUserByEmail(email);
-
-      if (!user) {
-        await saveUserToDB({
-          name: name,
-          email: email,
-          password: null,
-          picture: picture,
-          provider: 'google'
-        });
+      const userData = localStorage.getItem('dorak_user');
+      if (!userData) {
+        showToast('❌ يجب تسجيل الدخول أولاً.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+        return;
       }
 
-      const session = { name, email, picture };
-      localStorage.setItem('dorak_user', JSON.stringify(session));
-      window.location.href = 'dashboard.html';
+      const user = JSON.parse(userData);
+      const userEmail = user.email;
 
-    } catch (err) {
-      console.error('❌ خطأ في تسجيل الدخول بجوجل:', err);
-      alert('حدث خطأ أثناء تسجيل الدخول بجوجل. حاول مرة أخرى.');
+      const { data: existing, error: checkError } = await supabase
+        .from('activation_requests')
+        .select('*')
+        .eq('user_email', userEmail)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (checkError) {
+        showToast('⚠️ خطأ في التحقق: ' + checkError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+        return;
+      }
+
+      if (existing && existing.length > 0) {
+        const last = existing[0];
+        const now = new Date();
+        const expiry = new Date(last.expiry_date);
+
+        if (last.status === 'active' && expiry > now) {
+          showToast('✅ لديك اشتراك مفعّل بالفعل!', 'warning');
+          loadActivationStatus();
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+          return;
+        }
+
+        if (last.status === 'pending') {
+          showToast('⏳ طلبك قيد المراجعة، انتظر قليلاً.', 'warning');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+          return;
+        }
+
+        if (last.status === 'expired' || expiry <= now) {
+          await supabase
+            .from('activation_requests')
+            .update({ status: 'expired' })
+            .eq('id', last.id);
+        }
+      }
+
+      const newCode = generateActivationCode();
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('activation_requests')
+        .insert({
+          user_email: userEmail,
+          user_name: user.name || 'مستخدم',
+          activation_code: newCode,
+          status: 'pending',
+          expiry_date: expiryDate.toISOString(),
+          device_id: null
+        })
+        .select();
+
+      if (insertError) {
+        showToast('❌ فشل إنشاء الكود: ' + insertError.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+        return;
+      }
+
+      showToast('✅ تم إنشاء كود التفعيل! يرجى الانتظار حتى يتم تفعيله.', 'success');
+      loadActivationStatus();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
+
+    } catch (e) {
+      showToast('❌ حدث خطأ: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية (7 أيام)';
     }
   }
 
-  function handleGoogleFallback() {
-    document.getElementById('googleStatus').innerHTML = '⏳ جاري الاتصال بـ Google...';
-    setTimeout(async () => {
-      const fakeEmail = 'user_google_test@gmail.com';
-      const fakeName = 'مستخدم Google (تجريبي)';
+  async function loadActivationStatus() {
+    try {
+      const userData = localStorage.getItem('dorak_user');
+      if (!userData) return;
 
-      try {
-        let user = await findUserByEmail(fakeEmail);
-        if (!user) {
-          await saveUserToDB({
-            name: fakeName,
-            email: fakeEmail,
-            password: null,
-            picture: null,
-            provider: 'google_simulator'
-          });
+      const user = JSON.parse(userData);
+      const userEmail = user.email;
+
+      const { data, error } = await supabase
+        .from('activation_requests')
+        .select('*')
+        .eq('user_email', userEmail)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('خطأ في تحميل حالة التفعيل:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const req = data[0];
+        const section = document.getElementById('activationSection');
+        section.style.display = 'block';
+
+        document.getElementById('activationCodeDisplay').textContent = req.activation_code;
+
+        const expiry = new Date(req.expiry_date);
+        const now = new Date();
+
+        let statusText = '';
+        let statusClass = '';
+        let remainingText = '';
+
+        if (req.status === 'pending') {
+          statusText = '⏳ في الانتظار';
+          statusClass = 'status-pending';
+          remainingText = 'بانتظار موافقة الأدمن';
+        } else if (req.status === 'active' && expiry > now) {
+          statusText = '✅ نشط';
+          statusClass = 'status-active';
+          const diff = expiry - now;
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          remainingText = `${days} يوم و ${hours} ساعة`;
+        } else {
+          statusText = '❌ منتهي';
+          statusClass = 'status-expired';
+          remainingText = 'انتهت صلاحية الكود';
         }
-      } catch (e) { console.warn('محاكي: فشل في الكتابة', e); }
 
-      const session = { name: fakeName, email: fakeEmail, picture: null };
-      localStorage.setItem('dorak_user', JSON.stringify(session));
-      document.getElementById('googleStatus').innerHTML = '✅ تم تسجيل الدخول عبر Google (محاكي)';
-      window.location.href = 'dashboard.html';
-    }, 1200);
+        document.getElementById('activationStatusDisplay').textContent = statusText;
+        document.getElementById('activationStatusDisplay').className = 'status ' + statusClass;
+        document.getElementById('activationRemainingDisplay').textContent = remainingText;
+
+      } else {
+        document.getElementById('activationSection').style.display = 'none';
+      }
+
+    } catch (e) {
+      console.error('خطأ:', e);
+    }
   }
 
   window.onload = function() {
-    if (localStorage.getItem('dorak_user')) {
-      window.location.href = 'dashboard.html';
+    const userData = localStorage.getItem('dorak_user');
+    if (!userData) {
+      window.location.href = 'login.html';
       return;
     }
 
-    const container = document.getElementById('googleBtnContainer');
-    const fallbackBtn = document.getElementById('googleFallbackBtn');
-    const statusEl = document.getElementById('googleStatus');
+    try {
+      const user = JSON.parse(userData);
+      document.getElementById('userName').textContent = user.name || 'مستخدم';
+      document.getElementById('userEmail').textContent = user.email || '';
 
-    if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID.length > 10) {
-      fallbackBtn.style.display = 'none';
-      statusEl.textContent = '🔐 تسجيل آمن عبر Google';
+      if (user.picture) {
+        const container = document.getElementById('avatarContainer');
+        container.innerHTML = `<img src="${user.picture}" alt="Profile" />`;
+      }
 
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: (response) => {
-          handleGoogleLogin(response.credential);
-        },
-        cancel_on_tap_outside: false,
-      });
+      loadActivationStatus();
 
-      google.accounts.id.renderButton(container, {
-        theme: 'outline',
-        size: 'large',
-        width: 400,
-        text: 'signin_with',
-        shape: 'rectangular',
-        logo_alignment: 'left'
-      });
-    } else {
-      fallbackBtn.style.display = 'flex';
-      statusEl.textContent = '💡 لتفعيل الدخول بجوجل حقيقي، ضع Client ID في الكود';
+    } catch (e) {
+      window.location.href = 'login.html';
     }
   };
 </script>
