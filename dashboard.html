@@ -304,7 +304,7 @@
       const { data, error } = await supabaseClient.from('businesses').insert({
         code,
         name: name ? `${name} — تجربة مجانية` : 'تجربة مجانية',
-        owner_pin: randomPin(),
+        owner_pin: '0000',
         total_stations: 4
       }).select().single();
       if (!error) return data;
