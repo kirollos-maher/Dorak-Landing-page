@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -201,7 +204,7 @@
 
   <a href="index.html" class="btn-home"><i class="fa-solid fa-house"></i> العودة للصفحة الرئيسية</a>
   
-  <a href="https://dorak-six.vercel.app/" class="btn-trial"><i class="fa-solid fa-rocket"></i> ابدأ تجربتك المجانية دلوقتي</a>
+  <button class="btn-trial" id="trialBtn" onclick="startFreeTrial()"><i class="fa-solid fa-rocket"></i> <span id="trialBtnText">ابدأ تجربتك المجانية دلوقتي</span></button>
 
   <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</button>
 
@@ -211,6 +214,28 @@
 </div>
 
 <script>
+  // ============================================================
+  //  Firebase (بيانات المستخدمين — نفس بيانات register.html)
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyA5snSgN-BAdcYMPvFRpIxRiMGHkX8VA2Y",
+    authDomain: "dorakdb-0.firebaseapp.com",
+    databaseURL: "https://dorakdb-0-default-rtdb.firebaseio.com",
+    projectId: "dorakdb-0",
+    storageBucket: "dorakdb-0.firebasestorage.app",
+    messagingSenderId: "543545007670",
+    appId: "1:543545007670:web:78f6e765e72006d98b4297"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const fdb = firebase.database();
+
+  // ============================================================
+  //  Supabase (نفس مشروع التطبيق ولوحة الأدمن)
+  // ============================================================
+  const SUPABASE_URL = 'https://hdrvqgicxxgfolozxgjp.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_dGNw7eTTempKBdFmAZRjYA_eaeEE2jj';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   function logout() {
     localStorage.removeItem('dorak_user');
     window.location.href = 'login.html';
@@ -236,6 +261,114 @@
       window.location.href = 'login.html';
     }
   };
+
+  // ============================================================
+  //  🚀 تفعيل التجربة المجانية (7 أيام) تلقائيًا
+  // ============================================================
+  function randomBizCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = 'TRY';
+    for (let i = 0; i < 5; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function randomActivationCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    for (let i = 0; i < 8; i++) { out += chars[Math.floor(Math.random() * chars.length)]; if (i === 3) out += '-'; }
+    return out;
+  }
+
+  function randomPin() {
+    return String(Math.floor(1000 + Math.random() * 9000));
+  }
+
+  // يدور على المستخدم في Firebase بالإيميل، عشان نتأكد إنه ماخدش تجربة قبل كده
+  function findFirebaseUserByEmail(email) {
+    return new Promise((resolve) => {
+      fdb.ref('users').orderByChild('email').equalTo(email).once('value')
+        .then((snap) => {
+          const data = snap.val();
+          if (!data) { resolve(null); return; }
+          const key = Object.keys(data)[0];
+          resolve({ key, ...data[key] });
+        })
+        .catch(() => resolve(null));
+    });
+  }
+
+  // ينشئ نشاط جديد بكود فريد (بيحاول أكتر من مرة لو حصل تعارض في الكود)
+  async function createTrialBusiness(name) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomBizCode();
+      const { data, error } = await supabaseClient.from('businesses').insert({
+        code,
+        name: name ? `${name} — تجربة مجانية` : 'تجربة مجانية',
+        owner_pin: randomPin(),
+        total_stations: 4
+      }).select().single();
+      if (!error) return data;
+      if (error.code !== '23505') throw error; // غير خطأ تكرار الكود، وقف
+    }
+    throw new Error('تعذر إنشاء كود نشاط فريد');
+  }
+
+  // ينشئ كود تفعيل تجريبي (7 أيام) لنشاط معين
+  async function createTrialActivationCode(businessId) {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randomActivationCode();
+      const { data, error } = await supabaseClient.from('activation_codes').insert({
+        business_id: businessId,
+        code,
+        is_trial: true
+      }).select().single();
+      if (!error) return data;
+      if (error.code !== '23505') throw error;
+    }
+    throw new Error('تعذر إنشاء كود تفعيل فريد');
+  }
+
+  async function startFreeTrial() {
+    const btn = document.getElementById('trialBtn');
+    const btnText = document.getElementById('trialBtnText');
+    btn.disabled = true;
+    btnText.textContent = 'جاري التجهيز...';
+
+    try {
+      const userData = localStorage.getItem('dorak_user');
+      const user = userData ? JSON.parse(userData) : {};
+
+      let fbUser = user.email ? await findFirebaseUserByEmail(user.email) : null;
+      let bizCode = fbUser && fbUser.trialBusinessCode ? fbUser.trialBusinessCode : null;
+      let bizId = null;
+
+      if (bizCode) {
+        // عنده نشاط تجربة قبل كده — نجيب الـ id بتاعه ونولّد كود تفعيل جديد له
+        const { data: biz } = await supabaseClient.from('businesses').select('id').eq('code', bizCode).maybeSingle();
+        if (biz) bizId = biz.id;
+      }
+
+      if (!bizId) {
+        const biz = await createTrialBusiness(user.name);
+        bizId = biz.id;
+        bizCode = biz.code;
+
+        // نسجّل كود النشاط على حساب المستخدم في Firebase عشان ميعملش تجربة تانية
+        if (fbUser) {
+          await fdb.ref('users/' + fbUser.key).update({ trialBusinessCode: bizCode });
+        }
+      }
+
+      const actCode = await createTrialActivationCode(bizId);
+
+      window.location.href = `https://dorak-six.vercel.app/?biz=${encodeURIComponent(bizCode)}&code=${encodeURIComponent(actCode.code)}`;
+    } catch (e) {
+      console.error('Trial provisioning error:', e);
+      btn.disabled = false;
+      btnText.textContent = 'ابدأ تجربتك المجانية دلوقتي';
+      alert('حصل خطأ أثناء تجهيز التجربة المجانية، حاول تاني.');
+    }
+  }
 </script>
 
 </body>
